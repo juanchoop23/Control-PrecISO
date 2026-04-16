@@ -1,8 +1,8 @@
 pages:
   stage: deploy
   script:
-    - mkdir public
-    - cp -r * public/
+    - mkdir -p public
+    - cp -r $(ls | grep -v public) public/
   artifacts:
     paths:
       - public
