@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <title>Añadir Proveedor - ISO 27001</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 0px;
+        }
+
+        h1 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 32px;
+            font-weight: 600;
+            border-left: 5px solid #485755;
+            padding-left: 20px;
+        }
+
+        .subtitulo {
+            color: #64748b;
+            margin-bottom: 30px;
+            padding-left: 25px;
+            font-size: 15px;
+        }
+
+        .form-section {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .form-section:hover {
+            border-color: #485755;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title span {
+            background: #485755;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        label.required::after {
+            content: ' *';
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #485755;
+            box-shadow: 0 0 0 3px rgba(72, 87, 85, 0.2);
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #485755;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #485755;
+            color: white;
+            box-shadow: 0 4px 10px rgba(72, 87, 85, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #1a2560;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #485755;
+            border: 2px solid #485755;
+        }
+
+        .btn-secondary:hover {
+            background: #f1f5f9;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+            .buttons-container {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Añadir Proveedor</h1>
+        <div class="subtitulo">
+            Complete la información del nuevo proveedor o tercero
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+
+        <form id="proveedorForm">
+            <!-- SECCIÓN 1: Información básica -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span>📋</span> INFORMACIÓN BÁSICA
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="required">Nombre del proveedor</label>
+                        <input type="text" id="nombreEmpresa" placeholder="Ej: Soluciones Tecnológicas S.A." required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="required">NIT</label>
+                        <input type="text" id="nit" placeholder="Ej: 900.123.456-7" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="required">Tipo de proveedor</label>
+                        <select id="tipoProveedor" required>
+                            <option value="">Seleccione...</option>
+                            <option value="cloud">Cloud Computing</option>
+                            <option value="soporte">Soporte Técnico</option>
+                            <option value="consultoria">Consultoría</option>
+                            <option value="hardware">Hardware</option>
+                            <option value="software">Software</option>
+                            <option value="otros">Otros</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Servicio contratado</label>
+                        <input type="text" id="servicioContratado" placeholder="Ej: Servicios de infraestructura cloud">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: Datos de contacto -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span>📞</span> DATOS DE CONTACTO
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="required">Persona de contacto</label>
+                        <input type="text" id="contactoNombre" placeholder="Nombre completo" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Cargo</label>
+                        <input type="text" id="contactoCargo" placeholder="Ej: Gerente de Cuenta">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="required">Email</label>
+                        <input type="email" id="contactoEmail" placeholder="contacto@proveedor.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="required">Teléfono</label>
+                        <input type="tel" id="contactoTelefono" placeholder="+57 300 123 4567" required>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Dirección</label>
+                        <input type="text" id="direccion" placeholder="Dirección completa">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: Estado inicial -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span>⚡</span> ESTADO INICIAL
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="required">Estado</label>
+                        <select id="estado" required>
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Observaciones</label>
+                        <textarea id="observaciones" rows="2" placeholder="Comentarios adicionales sobre el proveedor..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="buttons-container">
+                <a href="gestion-proveedores.html" class="btn btn-secondary">
+                    <span>✖</span> CANCELAR
+                </a>
+                <button type="button" id="guardarBtn" class="btn btn-primary">
+                    <span>✓</span> GUARDAR
+                    <span id="loadingSpinner" class="loading"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN
+        const API_PROVEEDORES = 'https://kv594jq187.execute-api.us-east-1.amazonaws.com/v1/proveedores';
+        const EMPRESA_ID = localStorage.getItem('empresa_id') || 8;
+        // Verificar rol
+        const userRole = getUserRole();
+        if (userRole !== 'AdminEmpresa' && userRole !== 'Superadmin') {
+            document.body.innerHTML = `
+                <div style="text-align:center; padding:50px;">
+                    <h2>⚠️ Acceso Denegado</h2>
+                    <p>No tienes permisos para añadir proveedores.</p>
+                    <a href="gestion-proveedores.html" class="btn btn-primary">Volver</a>
+                </div>
+            `;
+            throw new Error('Acceso denegado');
+        }
+
+
+        // Elementos DOM
+        const guardarBtn = document.getElementById('guardarBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorMessageDiv = document.getElementById('errorMessage');
+        const successMessageDiv = document.getElementById('successMessage');
+
+        function showError(message) {
+            errorMessageDiv.textContent = message;
+            errorMessageDiv.style.display = 'block';
+            successMessageDiv.style.display = 'none';
+            setTimeout(() => {
+                errorMessageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            successMessageDiv.textContent = message;
+            successMessageDiv.style.display = 'block';
+            errorMessageDiv.style.display = 'none';
+            setTimeout(() => {
+                successMessageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        async function guardarProveedor() {
+            // Obtener valores
+            const nombreEmpresa = document.getElementById('nombreEmpresa').value.trim();
+            const nit = document.getElementById('nit').value.trim();
+            const tipoProveedor = document.getElementById('tipoProveedor').value;
+            const servicioContratado = document.getElementById('servicioContratado').value.trim();
+            const contactoNombre = document.getElementById('contactoNombre').value.trim();
+            const contactoEmail = document.getElementById('contactoEmail').value.trim();
+            const contactoTelefono = document.getElementById('contactoTelefono').value.trim();
+            const estado = document.getElementById('estado').value;
+
+            // Validaciones
+            if (!nombreEmpresa) {
+                showError('El nombre del proveedor es requerido');
+                return;
+            }
+            if (!nit) {
+                showError('El NIT es requerido');
+                return;
+            }
+            if (!tipoProveedor) {
+                showError('El tipo de proveedor es requerido');
+                return;
+            }
+            if (!contactoNombre) {
+                showError('La persona de contacto es requerida');
+                return;
+            }
+            if (!contactoEmail) {
+                showError('El email de contacto es requerido');
+                return;
+            }
+            if (!contactoTelefono) {
+                showError('El teléfono de contacto es requerido');
+                return;
+            }
+
+            // Validar formato de email
+            if (!contactoEmail.includes('@')) {
+                showError('Ingrese un email válido');
+                return;
+            }
+
+            // Mostrar loading
+            guardarBtn.disabled = true;
+            loadingSpinner.style.display = 'inline-block';
+
+            try {
+                const response = await fetch(API_PROVEEDORES, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        empresa_id: EMPRESA_ID,
+                        nombre_empresa: nombreEmpresa,
+                        nit: nit,
+                        tipo_proveedor: tipoProveedor,
+                        servicio_contratado: servicioContratado || null,
+                        contacto_nombre: contactoNombre,
+                        contacto_email: contactoEmail,
+                        contacto_telefono: contactoTelefono,
+                        estado: estado
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Error al crear proveedor');
+                }
+
+                const result = await response.json();
+                showSuccess(`✅ Proveedor "${nombreEmpresa}" creado exitosamente`);
+                
+                // Limpiar formulario
+                document.getElementById('proveedorForm').reset();
+                
+                // Redirigir después de 2 segundos
+                setTimeout(() => {
+                    window.location.href = 'gestion-proveedores.html';
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'Error al guardar proveedor');
+            } finally {
+                guardarBtn.disabled = false;
+                loadingSpinner.style.display = 'none';
+            }
+        }
+
+        guardarBtn.addEventListener('click', guardarProveedor);
+
+        // Permitir guardar con Enter
+        document.getElementById('proveedorForm').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                guardarProveedor();
+            }
+        });
+    </script>
+</body>
+</html> 

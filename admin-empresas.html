@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Empresas - Control PrecISO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f4f6f8;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-size: 32px;
+            font-weight: 600;
+            border-left: 5px solid #485755;
+            padding-left: 20px;
+        }
+
+        .subtitulo {
+            color: #64748b;
+            margin-bottom: 30px;
+            padding-left: 25px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #485755;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .empresas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .empresa-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .empresa-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #485755;
+        }
+
+        .empresa-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .empresa-nombre {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .empresa-estado {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .estado-activa {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .estado-inactiva {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .empresa-info {
+            margin-bottom: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .info-label {
+            color: #64748b;
+        }
+
+        .info-value {
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .usuarios-list {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .usuario-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+
+        .usuario-item:last-child {
+            border-bottom: none;
+        }
+
+        .usuario-info {
+            flex: 1;
+        }
+
+        .usuario-email {
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        .usuario-nombre {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .usuario-rol {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .rol-AdminEmpresa { background: #d1fae5; color: #065f46; }
+        .rol-UsuarioEmpresa { background: #e0f2fe; color: #0369a1; }
+        .rol-Superadmin { background: #fef3c7; color: #92400e; }
+
+        .usuario-estado {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+
+        .estado-activo-usuario { background: #d1fae5; color: #065f46; }
+        .estado-inactivo-usuario { background: #fee2e2; color: #991b1b; }
+
+        .acciones {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #485755;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1a2560;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #485755;
+            border: 1px solid #485755;
+        }
+
+        .btn-secondary:hover {
+            background: #f1f5f9;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #485755;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #485755;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: fadeInOut 3s ease;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            15% { opacity: 1; transform: translateY(0); }
+            85% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+
+        @media (max-width: 768px) {
+            .empresas-grid {
+                grid-template-columns: 1fr;
+            }
+            .acciones {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Administrar Empresas</h1>
+        <div class="subtitulo">
+            Gestión de empresas y usuarios del sistema
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalEmpresas">0</div>
+                <div class="stat-label">Total Empresas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalUsuarios">0</div>
+                <div class="stat-label">Total Usuarios</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="empresasActivas">0</div>
+                <div class="stat-label">Empresas Activas</div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">Cargando empresas...</div>
+        <div id="empresasContainer" class="empresas-grid" style="display: none;"></div>
+    </div>
+
+    <!-- Modal para editar usuario -->
+    <div id="modalUsuario" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Editar Usuario</h3>
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="editarUsuarioForm">
+                <input type="hidden" id="editUsuarioId">
+                <input type="hidden" id="editCognitoUserId">
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" id="editNombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="editEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Rol</label>
+                    <select id="editRol">
+                        <option value="AdminEmpresa">Administrador de Empresa</option>
+                        <option value="UsuarioEmpresa">Usuario de Empresa</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select id="editEstado">
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+                <div class="acciones" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para editar empresa -->
+    <div id="modalEmpresa" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Editar Empresa</h3>
+                <span class="close-modal" onclick="closeModalEmpresa()">&times;</span>
+            </div>
+            <form id="editarEmpresaForm">
+                <input type="hidden" id="editEmpresaId">
+                <div class="form-group">
+                    <label>Nombre de la empresa</label>
+                    <input type="text" id="editEmpresaNombre" required>
+                </div>
+                <div class="form-group">
+                    <label>NIT</label>
+                    <input type="text" id="editEmpresaNit" required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de empresa</label>
+                    <select id="editEmpresaTipo">
+                        <option value="tecnologia">Tecnología y Software</option>
+                        <option value="financiero">Servicios Financieros</option>
+                        <option value="salud">Salud</option>
+                        <option value="educacion">Educación</option>
+                        <option value="consultoria">Consultoría</option>
+                        <option value="manufactura">Manufactura</option>
+                        <option value="gobierno">Gobierno / Entidad Pública</option>
+                        <option value="otros">Otros</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Sector económico</label>
+                    <select id="editEmpresaSector">
+                        <option value="primario">Primario (Agricultura, Minería)</option>
+                        <option value="secundario">Secundario (Industria, Manufactura)</option>
+                        <option value="terciario">Terciario (Servicios, Comercio)</option>
+                        <option value="cuaternario">Cuaternario (Tecnología, I+D)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select id="editEmpresaEstado">
+                        <option value="activa">Activa</option>
+                        <option value="inactiva">Inactiva</option>
+                    </select>
+                </div>
+                <div class="acciones" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModalEmpresa()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Verificar rol Superadmin
+        const userRole = getUserRole();
+        if (userRole !== 'Superadmin') {
+            document.body.innerHTML = `
+                <div style="text-align:center; padding:50px;">
+                    <h2>⚠️ Acceso Denegado</h2>
+                    <p>No tienes permisos para acceder a esta página.</p>
+                    <a href="dashboard.html" class="btn btn-primary">Volver al Dashboard</a>
+                </div>
+            `;
+            throw new Error('Acceso denegado: se requiere rol Superadmin');
+        }
+
+        // Configuración
+        const API_EMPRESAS = 'https://cf759ojbfj.execute-api.us-east-1.amazonaws.com/V1/empresas';
+        const API_USUARIOS = 'https://cf759ojbfj.execute-api.us-east-1.amazonaws.com/V1/usuarios';
+
+        let empresas = [];
+        let usuariosCache = {};
+
+        // Elementos DOM
+        const loadingDiv = document.getElementById('loading');
+        const empresasContainer = document.getElementById('empresasContainer');
+        const totalEmpresasSpan = document.getElementById('totalEmpresas');
+        const totalUsuariosSpan = document.getElementById('totalUsuarios');
+        const empresasActivasSpan = document.getElementById('empresasActivas');
+
+        // Mostrar notificación
+        function showNotification(message, isError = false) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.style.background = isError ? '#dc2626' : '#485755';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Cargar usuarios de una empresa
+        async function cargarUsuarios(empresaId) {
+            if (usuariosCache[empresaId]) {
+                renderizarUsuarios(empresaId, usuariosCache[empresaId]);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_USUARIOS}?empresa_id=${empresaId}`);
+                if (!response.ok) throw new Error('Error al cargar usuarios');
+                const data = await response.json();
+                usuariosCache[empresaId] = data.usuarios || [];
+                renderizarUsuarios(empresaId, usuariosCache[empresaId]);
+            } catch (error) {
+                console.error('Error cargando usuarios:', error);
+                const container = document.getElementById(`usuarios-${empresaId}`);
+                if (container) {
+                    container.innerHTML = '<div style="color:#dc2626; text-align:center;">Error al cargar usuarios</div>';
+                }
+            }
+        }
+
+        function renderizarUsuarios(empresaId, usuarios) {
+            const container = document.getElementById(`usuarios-${empresaId}`);
+            if (!container) return;
+            
+            if (usuarios.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#64748b;">No hay usuarios</div>';
+                return;
+            }
+            
+            container.innerHTML = usuarios.map(user => `
+                <div class="usuario-item">
+                    <div class="usuario-info">
+                        <div class="usuario-email">${user.email}</div>
+                        <div class="usuario-nombre">${user.nombre || 'Sin nombre'}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="usuario-rol rol-${user.rol}">${user.rol === 'AdminEmpresa' ? 'Admin' : 'Usuario'}</span>
+                        <span class="usuario-estado ${user.estado === 'activo' ? 'estado-activo-usuario' : 'estado-inactivo-usuario'}">
+                            ${user.estado === 'activo' ? 'Activo' : 'Inactivo'}
+                        </span>
+                        <button class="btn btn-secondary btn-sm" onclick="abrirModalEditarUsuario(${user.id}, '${user.cognito_user_id}', '${user.nombre}', '${user.email}', '${user.rol}', '${user.estado}')">
+                            ✏️
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Renderizar empresas
+        function renderizarEmpresas() {
+            empresasContainer.innerHTML = '';
+            
+            if (empresas.length === 0) {
+                empresasContainer.innerHTML = '<div style="text-align:center; padding:50px; color:#64748b;">No hay empresas registradas</div>';
+                return;
+            }
+            
+            empresas.forEach(emp => {
+                const card = document.createElement('div');
+                card.className = 'empresa-card';
+                card.innerHTML = `
+                    <div class="empresa-header">
+                        <span class="empresa-nombre">${emp.nombre_empresa}</span>
+                        <span class="empresa-estado ${emp.estado === 'activa' ? 'estado-activa' : 'estado-inactiva'}">
+                            ${emp.estado === 'activa' ? 'Activa' : 'Inactiva'}
+                        </span>
+                    </div>
+                    <div class="empresa-info">
+                        <div class="info-row">
+                            <span class="info-label">NIT:</span>
+                            <span class="info-value">${emp.nit}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Tipo:</span>
+                            <span class="info-value">${emp.tipo_empresa || 'No especificado'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Sector:</span>
+                            <span class="info-value">${emp.sector_economico || 'No especificado'}</span>
+                        </div>
+                    </div>
+                    <div class="usuarios-list" id="usuarios-${emp.id}">
+                        <div style="text-align:center; font-size:12px; color:#64748b;">Cargando usuarios...</div>
+                    </div>
+                    <div class="acciones">
+                        <button class="btn btn-secondary btn-sm" onclick="cargarUsuarios(${emp.id})">👥 Ver Usuarios</button>
+                        <button class="btn btn-primary btn-sm" onclick="abrirModalEditarEmpresa(${emp.id}, '${emp.nombre_empresa}', '${emp.nit}', '${emp.tipo_empresa || ''}', '${emp.sector_economico || ''}', '${emp.estado}')">
+                            ✏️ Editar
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="cambiarEstadoEmpresa(${emp.id}, '${emp.estado}')">
+                            ${emp.estado === 'activa' ? '🔴 Desactivar' : '🟢 Activar'}
+                        </button>
+                    </div>
+                `;
+                empresasContainer.appendChild(card);
+                // Cargar usuarios automáticamente
+                cargarUsuarios(emp.id);
+            });
+        }
+
+        // Modal Usuario
+        let currentEditUsuarioId = null;
+        let currentCognitoUserId = null;
+
+        function abrirModalEditarUsuario(id, cognitoUserId, nombre, email, rol, estado) {
+            currentEditUsuarioId = id;
+            currentCognitoUserId = cognitoUserId;
+            document.getElementById('editUsuarioId').value = id;
+            document.getElementById('editCognitoUserId').value = cognitoUserId;
+            document.getElementById('editNombre').value = nombre || '';
+            document.getElementById('editEmail').value = email || '';
+            document.getElementById('editRol').value = rol || 'UsuarioEmpresa';
+            document.getElementById('editEstado').value = estado || 'activo';
+            document.getElementById('modalUsuario').style.display = 'flex';
+        }
+
+        async function guardarUsuario(e) {
+            e.preventDefault();
+            const usuarioId = document.getElementById('editUsuarioId').value;
+            const data = {
+                nombre: document.getElementById('editNombre').value,
+                email: document.getElementById('editEmail').value,
+                rol: document.getElementById('editRol').value,
+                estado: document.getElementById('editEstado').value,
+                cognito_user_id: document.getElementById('editCognitoUserId').value
+            };
+            
+            try {
+                const response = await fetch(`${API_USUARIOS}/${usuarioId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) throw new Error('Error al actualizar usuario');
+                
+                showNotification('✅ Usuario actualizado exitosamente');
+                closeModal();
+                // Recargar usuarios de la empresa
+                const empresaId = Object.keys(usuariosCache).find(id => 
+                    usuariosCache[id]?.some(u => u.id == usuarioId)
+                );
+                if (empresaId) {
+                    usuariosCache[empresaId] = null;
+                    cargarUsuarios(empresaId);
+                }
+            } catch (error) {
+                showNotification(error.message, true);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalUsuario').style.display = 'none';
+        }
+
+        // Modal Empresa
+        let currentEditEmpresaId = null;
+
+        function abrirModalEditarEmpresa(id, nombre, nit, tipo, sector, estado) {
+            currentEditEmpresaId = id;
+            document.getElementById('editEmpresaId').value = id;
+            document.getElementById('editEmpresaNombre').value = nombre;
+            document.getElementById('editEmpresaNit').value = nit;
+            document.getElementById('editEmpresaTipo').value = tipo;
+            document.getElementById('editEmpresaSector').value = sector;
+            document.getElementById('editEmpresaEstado').value = estado;
+            document.getElementById('modalEmpresa').style.display = 'flex';
+        }
+
+        async function guardarEmpresa(e) {
+            e.preventDefault();
+            const empresaId = document.getElementById('editEmpresaId').value;
+            const data = {
+                nombre_empresa: document.getElementById('editEmpresaNombre').value,
+                nit: document.getElementById('editEmpresaNit').value,
+                tipo_empresa: document.getElementById('editEmpresaTipo').value,
+                sector_economico: document.getElementById('editEmpresaSector').value,
+                estado: document.getElementById('editEmpresaEstado').value
+            };
+            
+            try {
+                const response = await fetch(`${API_EMPRESAS}/${empresaId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) throw new Error('Error al actualizar empresa');
+                
+                showNotification('✅ Empresa actualizada exitosamente');
+                closeModalEmpresa();
+                cargarEmpresas(); // Recargar lista
+            } catch (error) {
+                showNotification(error.message, true);
+            }
+        }
+
+        async function cambiarEstadoEmpresa(empresaId, estadoActual) {
+            const nuevoEstado = estadoActual === 'activa' ? 'inactiva' : 'activa';
+            if (!confirm(`¿Está seguro de ${nuevoEstado === 'activa' ? 'activar' : 'desactivar'} esta empresa?`)) return;
+            
+            try {
+                const response = await fetch(`${API_EMPRESAS}/${empresaId}/estado`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ estado: nuevoEstado })
+                });
+                
+                if (!response.ok) throw new Error('Error al cambiar estado');
+                
+                showNotification(`✅ Empresa ${nuevoEstado === 'activa' ? 'activada' : 'desactivada'} exitosamente`);
+                cargarEmpresas(); // Recargar lista
+            } catch (error) {
+                showNotification(error.message, true);
+            }
+        }
+
+        function closeModalEmpresa() {
+            document.getElementById('modalEmpresa').style.display = 'none';
+        }
+
+        // Cargar empresas
+        async function cargarEmpresas() {
+            try {
+                loadingDiv.style.display = 'block';
+                empresasContainer.style.display = 'none';
+
+                const response = await fetch(API_EMPRESAS);
+                if (!response.ok) throw new Error('Error al cargar empresas');
+                const data = await response.json();
+                empresas = data.empresas || [];
+
+                const total = empresas.length;
+                const activas = empresas.filter(e => e.estado === 'activa').length;
+                totalEmpresasSpan.textContent = total;
+                empresasActivasSpan.textContent = activas;
+                
+                // Calcular total de usuarios
+                let totalUsuarios = 0;
+                for (const emp of empresas) {
+                    const resp = await fetch(`${API_USUARIOS}?empresa_id=${emp.id}`);
+                    if (resp.ok) {
+                        const userData = await resp.json();
+                        totalUsuarios += (userData.usuarios || []).length;
+                    }
+                }
+                totalUsuariosSpan.textContent = totalUsuarios;
+
+                renderizarEmpresas();
+
+                loadingDiv.style.display = 'none';
+                empresasContainer.style.display = 'grid';
+
+            } catch (error) {
+                console.error('Error:', error);
+                loadingDiv.innerHTML = `<div style="color:#dc2626;">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Event listeners
+        document.getElementById('editarUsuarioForm').addEventListener('submit', guardarUsuario);
+        document.getElementById('editarEmpresaForm').addEventListener('submit', guardarEmpresa);
+
+        // Iniciar
+        cargarEmpresas();
+    </script>
+</body>
+</html>

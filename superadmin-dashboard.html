@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Superadmin - Control PrecISO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+</head>
+<body>
+
+<nav class="navbar bg-dark border-bottom border-body" data-bs-theme="dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <img src="img/logo.png" alt="Logo" width="45" height="26" class="d-inline-block align-text-top">
+            <strong>Control PrecISO - Superadmin</strong>
+        </a>
+        <div class="d-flex">
+            <span class="navbar-text me-3" style="color: white;">
+                Rol: 🔧 Superadministrador
+            </span>
+            <a href="index.html" class="btn btn-sm btn-outline-light" onclick="logout()">Cerrar sesión</a>
+        </div>
+    </div>
+</nav>
+
+<div class="dashboard">
+    <div class="sidebar" id="sidebar">
+        <a href="superadmin-reportes.html" target="contenido">📊 Reportes Globales</a>
+        <a href="superadmin-controles.html" target="contenido">📋 Gestión de Controles</a>
+        <a href="superadmin-controles-proveedores.html" target="contenido">🏢 Controles Proveedores</a>
+        <a href="admin-empresas.html" target="contenido">🏭 Administrar Empresas</a>
+    </div>
+
+    <main class="dashboard-main">
+        <iframe 
+            src="superadmin-reportes.html"
+            name="contenido"
+            class="responsive-iframe"
+            frameborder="0">
+        </iframe>
+    </main>
+</div>
+
+<script>
+    // Verificar autenticación y rol
+    if (!isAuthenticated()) {
+        window.location.href = 'login.html';
+    }
+    
+    const userRole = getUserRole();
+    if (userRole !== 'Superadmin') {
+        window.location.href = 'dashboard.html';
+    }
+</script>
+
+</body>
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-logo">
+            <img src="img/logo.png" alt="ISO Logo">
+        </div>
+        <div class="footer-info">
+            <h6>Control PrecISO</h6>
+            <p>Despliegue de la Norma ISO 27001:2022</p>
+            <p class="copyright">© 2026 - Todos los derechos reservados.</p>
+            <hr>
+            <div class="footer-contact">
+                <h6>Contacto</h6>
+                <p>jdprietop@academia.usbbog.edu.co</p>
+                <p>jfordonezc@academia.usbbog.edu.co</p>
+            </div>
+        </div>
+    </div>
+</footer>
+</html>

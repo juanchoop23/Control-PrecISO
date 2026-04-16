@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <title>Reportes ISO 27001:2022 - Control PrecISO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            padding: 0px;
+        }
+
+        h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-size: clamp(24px, 5vw, 32px);
+            font-weight: 600;
+            border-left: 5px solid #485755;
+            padding-left: 20px;
+        }
+
+        .subtitulo {
+            color: #64748b;
+            margin-bottom: 30px;
+            padding-left: 25px;
+            font-size: clamp(13px, 4vw, 15px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #485755;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        /* Tarjeta de progreso principal */
+        .progreso-principal {
+            background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .fecha-auditoria {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .fecha-badge {
+            background: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid #e2e8f0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .estado-general {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .estado-titulo {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .porcentaje-general {
+            font-size: 64px;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .porcentaje-general span {
+            font-size: 24px;
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .barra-dual-container {
+            width: 100%;
+            height: 32px;
+            background: #e2e8f0;
+            border-radius: 50px;
+            overflow: hidden;
+            display: flex;
+            margin: 25px 0;
+        }
+
+        .barra-cumple {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .barra-incumple {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+            display: flex;
+            align-items: center;
+            padding-left: 15px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 10px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: #485755;
+            transform: translateY(-3px);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .stat-valor {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.2;
+        }
+
+        .stat-etiqueta {
+            font-size: 13px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card.cumple .stat-valor { color: #16a34a; }
+        .stat-card.incumple .stat-valor { color: #dc2626; }
+        .stat-card.auditoria .stat-valor { color: #f59e0b; }
+
+        .categorias-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .categoria-card {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .categoria-card:hover {
+            border-color: #485755;
+            transform: translateY(-3px);
+        }
+
+        .categoria-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .categoria-icono {
+            width: 48px;
+            height: 48px;
+            background: #485755;
+            color: white;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .categoria-titulo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .categoria-sub {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .categoria-barra {
+            width: 100%;
+            height: 16px;
+            background: #e2e8f0;
+            border-radius: 50px;
+            overflow: hidden;
+            display: flex;
+            margin: 15px 0 10px;
+        }
+
+        .categoria-cumple {
+            height: 100%;
+            background: #22c55e;
+        }
+
+        .categoria-incumple {
+            height: 100%;
+            background: #ef4444;
+        }
+
+        .categoria-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        /* Proveedores */
+        .proveedores-section {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 25px;
+            border: 2px solid #e2e8f0;
+            margin-bottom: 25px;
+        }
+
+        .proveedores-titulo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .proveedores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .proveedor-reporte {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .proveedor-nombre {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .proveedor-riesgo {
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .riesgo-bajo { color: #10b981; }
+        .riesgo-medio { color: #f59e0b; }
+        .riesgo-alto { color: #ef4444; }
+        .riesgo-critico { color: #dc2626; }
+
+        .proveedor-fecha {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .acciones-container {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: clamp(14px, 4vw, 16px);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #485755;
+            color: white;
+            box-shadow: 0 4px 10px rgba(72, 87, 85, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #1a2560;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #485755;
+            border: 2px solid #485755;
+        }
+
+        .btn-secondary:hover {
+            background: #f1f5f9;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .progreso-principal { padding: 20px; }
+            .porcentaje-general { font-size: 48px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .categorias-grid { grid-template-columns: 1fr; }
+            .acciones-container { flex-direction: column; }
+            .btn { width: 100%; justify-content: center; }
+        }
+
+        @media (max-width: 480px) {
+            .barra-cumple, .barra-incumple { font-size: 12px; padding: 0 8px; }
+            .stat-card { padding: 15px 5px; }
+            .stat-valor { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reporte de Cumplimiento</h1>
+        <div class="subtitulo">
+            Resultados de la evaluación de controles ISO 27001:2022
+        </div>
+
+        <div id="loading" class="loading">Cargando reportes...</div>
+        <div id="error" class="error-message"></div>
+        <div id="success" class="success-message"></div>
+
+        <div id="reporteContainer" style="display: none;">
+            <!-- Tarjeta de progreso principal (se llena con JS) -->
+            <div class="progreso-principal" id="progresoPrincipal"></div>
+
+            <!-- Tarjetas por categoría (se llena con JS) -->
+            <div class="categorias-grid" id="categoriasGrid"></div>
+
+            <!-- Proveedores evaluados -->
+            <div class="proveedores-section" id="proveedoresSection" style="display: none;">
+                <div class="proveedores-titulo">
+                    <span>🏢</span> Evaluación de Proveedores
+                </div>
+                <div id="proveedoresList"></div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="acciones-container">
+            <button id="solicitarAuditoriaBtn" class="btn btn-primary" style="display: none;">
+                <span>📋</span> SOLICITAR NUEVA AUDITORÍA
+            </button>
+            <button id="imprimirBtn" class="btn btn-secondary">
+                <span>📥</span> IMPRIMIR RESULTADOS
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN
+        const API_ESTADOS = 'https://ccgu3zrns1.execute-api.us-east-1.amazonaws.com/v1/estados';
+        const API_EMPRESA_CONTROLES = 'https://jsaxgpptq9.execute-api.us-east-1.amazonaws.com/v1/empresa-controles';
+        const API_PROVEEDORES = 'https://kv594jq187.execute-api.us-east-1.amazonaws.com/v1/proveedores';
+        const API_EVALUACIONES = 'https://bq7xmey8yb.execute-api.us-east-1.amazonaws.com/v1/proveedores-evaluaciones';
+        const EMPRESA_ID = localStorage.getItem('empresa_id') || 8;
+        const API_CONTROLES = 'https://lycd7kx0r2.execute-api.us-east-1.amazonaws.com/v1/controles';
+        // Verificar rol para reportes (todos pueden ver)
+        const userRole = getUserRole();
+        // Sin restricción, todos los roles pueden ver reportes
+ 
+
+        let controles = [];
+        let estados = [];
+        let proveedores = [];
+        let evaluaciones = [];
+
+        // Elementos DOM
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        const successDiv = document.getElementById('success');
+        const reporteContainer = document.getElementById('reporteContainer');
+        const solicitarAuditoriaBtn = document.getElementById('solicitarAuditoriaBtn');
+
+        // Mostrar botón solo si es AdminEmpresa
+        if (userRole === 'AdminEmpresa') {
+            solicitarAuditoriaBtn.style.display = 'flex';
+        }
+
+        // Cargar datos
+        async function cargarDatos() {
+            try {
+                loadingDiv.style.display = 'block';
+                errorDiv.style.display = 'none';
+                reporteContainer.style.display = 'none';
+
+                // 1. Obtener IDs de controles seleccionados para la empresa
+                const responseControlesSel = await fetch(`${API_EMPRESA_CONTROLES}?empresa_id=${EMPRESA_ID}`);
+                if (!responseControlesSel.ok) throw new Error('Error al cargar controles seleccionados');
+                const dataControlesSel = await responseControlesSel.json();
+                const controlIds = dataControlesSel.controles || [];
+
+                if (controlIds.length === 0) {
+                    throw new Error('No hay controles seleccionados para esta empresa');
+                }
+
+                // 2. Obtener todos los controles desde DynamoDB
+                const responseAllControles = await fetch(API_CONTROLES);
+                if (!responseAllControles.ok) throw new Error('Error al cargar controles');
+                const dataAllControles = await responseAllControles.json();
+                const todosControles = dataAllControles.controles || [];
+
+                // 3. Filtrar solo los controles seleccionados
+                controles = todosControles.filter(c => controlIds.includes(c.id));
+
+                // 4. Obtener estados de auditoría
+                const responseEstados = await fetch(`${API_ESTADOS}?empresa_id=${EMPRESA_ID}`);
+                if (!responseEstados.ok) throw new Error('Error al cargar estados');
+                const dataEstados = await responseEstados.json();
+                estados = dataEstados.estados || [];
+
+                // 5. Crear mapa de estados por control_id
+                const estadosMap = {};
+                estados.forEach(e => {
+                    estadosMap[e.control_id] = {
+                        auditoria: e.estado_auditoria,
+                        implementacion: e.estado_implementacion
+                    };
+                });
+
+                // 6. Agrupar controles por categoría y calcular cumplimiento
+                const categoriasMap = {};
+                controles.forEach(control => {
+                    const cat = control.categoria || 'Otros';
+                    if (!categoriasMap[cat]) {
+                        categoriasMap[cat] = {
+                            nombre: cat,
+                            total: 0,
+                            cumplen: 0,
+                            incumplen: 0
+                        };
+                    }
+                    categoriasMap[cat].total++;
+                    
+                    const estado = estadosMap[control.id]?.auditoria;
+                    if (estado === 'cumple') {
+                        categoriasMap[cat].cumplen++;
+                    } else if (estado === 'no_cumple') {
+                        categoriasMap[cat].incumplen++;
+                    }
+                });
+
+                // 7. Convertir a array y ordenar
+                const categorias = Object.values(categoriasMap);
+                
+                // 8. Calcular totales
+                const totalControles = controles.length;
+                const cumplen = categorias.reduce((sum, cat) => sum + cat.cumplen, 0);
+                const nocumplen = categorias.reduce((sum, cat) => sum + cat.incumplen, 0);
+                const porcentaje = totalControles > 0 ? Math.round((cumplen / totalControles) * 100) : 0;
+
+                // 9. Obtener proveedores y evaluaciones
+                const responseProv = await fetch(`${API_PROVEEDORES}?empresa_id=${EMPRESA_ID}`);
+                if (responseProv.ok) {
+                    const dataProv = await responseProv.json();
+                    proveedores = dataProv.proveedores || [];
+                }
+
+                for (const prov of proveedores) {
+                    const respEval = await fetch(`${API_EVALUACIONES}?proveedor_id=${prov.id}`);
+                    if (respEval.ok) {
+                        const dataEval = await respEval.json();
+                        evaluaciones[prov.id] = dataEval.evaluaciones || [];
+                    }
+                }
+
+                renderizarReporte(totalControles, cumplen, nocumplen, porcentaje, categorias);
+                
+                loadingDiv.style.display = 'none';
+                reporteContainer.style.display = 'block';
+
+            } catch (err) {
+                console.error('Error:', err);
+                errorDiv.textContent = `Error: ${err.message}`;
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+            }
+        }
+        function renderizarReporte(total, cumplen, nocumplen, porcentaje, categorias) {
+            // Iconos por categoría
+            const iconos = {
+                'Organizacional': '🏢',
+                'Personas': '👥',
+                'Físicos': '🔒',
+                'Tecnológicos': '💻',
+                'Otros': '📁'
+            };
+            
+            // Progreso principal
+            const progresoPrincipal = document.getElementById('progresoPrincipal');
+            progresoPrincipal.innerHTML = `
+                <div class="fecha-auditoria">
+                    <div class="fecha-badge"><span>📅</span> Auditoría: ${new Date().toLocaleDateString()}</div>
+                    <div class="fecha-badge"><span>🏢</span> Empresa ID: ${EMPRESA_ID}</div>
+                </div>
+                <div class="estado-general">
+                    <div class="estado-titulo">Estado General de Cumplimiento</div>
+                    <div class="porcentaje-general">${porcentaje}<span>%</span></div>
+                    <div style="color: #64748b; font-size: 14px;">${cumplen} de ${total} controles cumplen</div>
+                </div>
+                <div class="barra-dual-container">
+                    <div class="barra-cumple" style="width: ${porcentaje}%;">${porcentaje}% CUMPLE</div>
+                    <div class="barra-incumple" style="width: ${100 - porcentaje}%;">${100 - porcentaje}% INCUMPLE</div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card cumple">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-valor">${total}</div>
+                        <div class="stat-etiqueta">Controles seleccionados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-valor">${categorias.length}</div>
+                        <div class="stat-etiqueta">Categorías</div>
+                    </div>
+                    <div class="stat-card cumple">
+                        <div class="stat-icon">🟢</div>
+                        <div class="stat-valor">${cumplen}</div>
+                        <div class="stat-etiqueta">Cumplen</div>
+                    </div>
+                    <div class="stat-card incumple">
+                        <div class="stat-icon">🔴</div>
+                        <div class="stat-valor">${nocumplen}</div>
+                        <div class="stat-etiqueta">Incumplen</div>
+                    </div>
+                </div>
+            `;
+
+            // Tarjetas por categoría (datos reales)
+            const categoriasGrid = document.getElementById('categoriasGrid');
+            categoriasGrid.innerHTML = categorias.map(cat => {
+                const porc = cat.total > 0 ? Math.round((cat.cumplen / cat.total) * 100) : 0;
+                const icono = iconos[cat.nombre] || '📁';
+                return `
+                    <div class="categoria-card">
+                        <div class="categoria-header">
+                            <div class="categoria-icono">${icono}</div>
+                            <div>
+                                <div class="categoria-titulo">${cat.nombre}</div>
+                                <div class="categoria-sub">${cat.total} controles</div>
+                            </div>
+                        </div>
+                        <div class="categoria-barra">
+                            <div class="categoria-cumple" style="width: ${porc}%;"></div>
+                            <div class="categoria-incumple" style="width: ${100 - porc}%;"></div>
+                        </div>
+                        <div class="categoria-stats">
+                            <span style="color: #16a34a;">✅ ${cat.cumplen} cumplen</span>
+                            <span style="color: #dc2626;">❌ ${cat.incumplen} incumplen</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Proveedores
+            const proveedoresSection = document.getElementById('proveedoresSection');
+            const proveedoresList = document.getElementById('proveedoresList');
+            
+            if (proveedores.length > 0) {
+                proveedoresSection.style.display = 'block';
+                proveedoresList.innerHTML = `
+                    <div class="proveedores-grid">
+                        ${proveedores.map(prov => {
+                            const evaluacionesProv = evaluaciones[prov.id] || [];
+                            const ultimaEval = evaluacionesProv[0];
+                            const riesgoClass = prov.riesgo_general ? `riesgo-${prov.riesgo_general}` : 'riesgo-bajo';
+                            return `
+                                <div class="proveedor-reporte">
+                                    <div class="proveedor-nombre">${prov.nombre_empresa}</div>
+                                    <div class="proveedor-riesgo">
+                                        <span class="${riesgoClass}">🎯 Riesgo: ${prov.riesgo_general || 'No evaluado'}</span>
+                                    </div>
+                                    <div class="proveedor-fecha">
+                                        📊 Auditorías: ${evaluacionesProv.length}
+                                        ${ultimaEval ? `<br>📅 Última: ${new Date(ultimaEval.fecha_evaluacion).toLocaleDateString()}` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } else {
+                proveedoresSection.style.display = 'none';
+            }
+        }
+        function solicitarAuditoria() {
+            successDiv.textContent = '✅ Solicitud de auditoría enviada. Un especialista se contactará pronto.';
+            successDiv.style.display = 'block';
+            setTimeout(() => { successDiv.style.display = 'none'; }, 5000);
+        }
+
+        function imprimirReporte() {
+            window.print();
+        }
+
+        solicitarAuditoriaBtn.addEventListener('click', solicitarAuditoria);
+        document.getElementById('imprimirBtn').addEventListener('click', imprimirReporte);
+
+        cargarDatos();
+    </script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Acceso Superadmin - Control PrecISO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .error-message {
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+        .loading {
+            display: none;
+            margin-left: 10px;
+        }
+        .btn-loading {
+            opacity: 0.7;
+            cursor: wait;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="left">
+        <h1>🔧 Acceso Superadministrador</h1>
+        <p>Panel de administración global del sistema</p>
+        <br>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="text" id="username" placeholder="superadmin@controlpreciso.com">
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="Contraseña">
+        </div>
+
+        <button id="loginBtn" class="btn" style="background: #485755;">
+            <span>Iniciar Sesión como Superadmin</span>
+            <span id="loadingSpinner" class="loading">⏳</span>
+        </button>
+
+        <div style="margin-top: 15px; text-align: center;">
+            <a href="index.html" style="color: #485755;">← Volver al menú principal</a>
+        </div>
+    </div>
+
+    <div class="right">
+        <img src="img/logo.png" width="500">
+    </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script>
+    const loginBtn = document.getElementById('loginBtn');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const errorMessageDiv = document.getElementById('errorMessage');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    if (isAuthenticated()) {
+        // Verificar si ya es Superadmin
+        const role = getUserRole();
+        if (role === 'Superadmin') {
+            window.location.href = 'superadmin-dashboard.html';
+        } else {
+            window.location.href = 'dashboard.html';
+        }
+    }
+
+    function showError(message) {
+        errorMessageDiv.textContent = message;
+        errorMessageDiv.style.display = 'block';
+        setTimeout(() => {
+            errorMessageDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    async function handleLogin() {
+        const email = usernameInput.value.trim();
+        const password = passwordInput.value;
+
+        if (!email || !password) {
+            showError('Por favor ingresa usuario y contraseña');
+            return;
+        }
+
+        loginBtn.disabled = true;
+        loginBtn.classList.add('btn-loading');
+        loadingSpinner.style.display = 'inline-block';
+
+        try {
+            const result = await login(email, password);
+            
+            if (result.success) {
+                // Verificar que el usuario es Superadmin
+                const role = getUserRole();
+                if (role === 'Superadmin') {
+                    window.location.href = 'superadmin-dashboard.html';
+                } else {
+                    showError('No tienes permisos de Superadministrador');
+                    await logout();
+                }
+            } else {
+                showError(result.error || 'Error al iniciar sesión');
+            }
+        } catch (error) {
+            showError('Error de conexión. Intenta nuevamente.');
+        } finally {
+            loginBtn.disabled = false;
+            loginBtn.classList.remove('btn-loading');
+            loadingSpinner.style.display = 'none';
+        }
+    }
+
+    loginBtn.addEventListener('click', handleLogin);
+    
+    passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleLogin();
+    });
+</script>
+
+</body>
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-logo">
+            <img src="img/logo.png" alt="ISO Logo">
+        </div>
+        <div class="footer-info">
+            <h5>Control PrecISO</h5>
+            <p>Despliegue de la Norma ISO 27001:2022</p>
+            <p class="copyright">© 2026 - Todos los derechos reservados.</p>
+            <hr>
+            <div class="footer-contact">
+                <h5>Contacto</h5>
+                <p>jdprietop@academia.usbbog.edu.co</p>
+                <p>jfordonezc@academia.usbbog.edu.co</p>
+            </div>
+        </div>
+    </div>
+</footer>
+</html>

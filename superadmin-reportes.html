@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes Globales - Superadmin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: #ffffff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+            font-size: 32px;
+            border-left: 5px solid #485755;
+            padding-left: 20px;
+        }
+        .subtitulo {
+            color: #64748b;
+            margin-bottom: 30px;
+            padding-left: 25px;
+        }
+        .empresa-card {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .empresa-nombre {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .stat {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #485755;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reportes Globales</h1>
+        <div class="subtitulo">
+            Estado de cumplimiento de todas las empresas
+        </div>
+        <div id="loading" class="loading">Cargando reportes...</div>
+        <div id="reportesContainer"></div>
+    </div>
+
+    <script>
+        const API_EMPRESAS = 'https://cf759ojbfj.execute-api.us-east-1.amazonaws.com/V1/empresas';
+        const API_ESTADOS = 'https://ccgu3zrns1.execute-api.us-east-1.amazonaws.com/v1/estados';
+        const API_EMPRESA_CONTROLES = 'https://jsaxgpptq9.execute-api.us-east-1.amazonaws.com/v1/empresa-controles';
+
+        async function cargarReportes() {
+            try {
+                const response = await fetch(API_EMPRESAS);
+                const data = await response.json();
+                const empresas = data.empresas || [];
+
+                const container = document.getElementById('reportesContainer');
+                container.innerHTML = '';
+                document.getElementById('loading').style.display = 'none';
+
+                for (const emp of empresas) {
+                    // Obtener controles seleccionados
+                    const controlesResp = await fetch(`${API_EMPRESA_CONTROLES}?empresa_id=${emp.id}`);
+                    const controlesData = await controlesResp.json();
+                    const totalControles = controlesData.controles?.length || 0;
+
+                    // Obtener estados
+                    const estadosResp = await fetch(`${API_ESTADOS}?empresa_id=${emp.id}`);
+                    const estadosData = await estadosResp.json();
+                    const estados = estadosData.estados || [];
+                    const cumplen = estados.filter(e => e.estado_auditoria === 'cumple').length;
+                    const porcentaje = totalControles > 0 ? Math.round((cumplen / totalControles) * 100) : 0;
+
+                    const card = document.createElement('div');
+                    card.className = 'empresa-card';
+                    card.innerHTML = `
+                        <div class="empresa-nombre">🏢 ${emp.nombre_empresa} (ID: ${emp.id})</div>
+                        <div class="stats">
+                            <div class="stat">📊 Controles: ${totalControles}</div>
+                            <div class="stat">✅ Cumplen: ${cumplen}</div>
+                            <div class="stat">📈 Cumplimiento: ${porcentaje}%</div>
+                            <div class="stat">📅 Estado: ${emp.estado === 'activa' ? 'Activa' : 'Inactiva'}</div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').innerHTML = `<div style="color:#dc2626;">Error: ${error.message}</div>`;
+            }
+        }
+
+        cargarReportes();
+    </script>
+</body>
+</html>

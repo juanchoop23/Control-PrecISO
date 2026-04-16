@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Registro - Control PrecISO</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+    .error-message {
+        color: #dc2626;
+        background: #fee2e2;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        display: none;
+    }
+    .success-message {
+        color: #10b981;
+        background: #d1fae5;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        display: none;
+    }
+    .loading {
+        display: none;
+        margin-left: 10px;
+    }
+    .btn-loading {
+        opacity: 0.7;
+        cursor: wait;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-group label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    .form-group label.required::after {
+        content: " *";
+        color: #dc2626;
+    }
+    .help-text {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    .password-requirements {
+        font-size: 0.7rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    .password-requirements ul {
+        margin: 0;
+        padding-left: 1rem;
+    }
+    .password-requirements li {
+        list-style: none;
+        position: relative;
+        padding-left: 1.2rem;
+    }
+    .password-requirements li::before {
+        content: "❌";
+        position: absolute;
+        left: 0;
+    }
+    .password-requirements li.valid::before {
+        content: "✅";
+    }
+</style>
+</head>
+<body>
+
+<div class="form">
+    <h2>Registrar Empresa</h2>
+    <p style="color: #64748b; margin-bottom: 1.5rem;">
+        Complete la información para registrar su empresa y crear la cuenta del administrador
+    </p>
+
+    <div id="errorMessage" class="error-message"></div>
+    <div id="successMessage" class="success-message"></div>
+
+    <form id="registroForm">
+        <!-- SECCIÓN: DATOS DE ACCESO (Cognito) -->
+        <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <h4 style="margin-bottom: 1rem;">🔐 Datos de acceso</h4>
+            
+            <div class="form-group">
+                <label class="required">Email del administrador</label>
+                <input type="email" id="email" placeholder="admin@tuempresa.com" required>
+                <div class="help-text">Este será tu usuario para iniciar sesión</div>
+            </div>
+
+            <div class="form-group">
+                <label class="required">Contraseña</label>
+                <input type="password" id="password" placeholder="Mínimo 8 caracteres" required>
+                <div class="password-requirements" id="passwordRequirements">
+                    <ul>
+                        <li id="req-length">Mínimo 8 caracteres</li>
+                        <li id="req-upper">Al menos una mayúscula</li>
+                        <li id="req-lower">Al menos una minúscula</li>
+                        <li id="req-number">Al menos un número</li>
+                        <li id="req-special">Al menos un carácter especial (!@#$%^&*)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="required">Confirmar contraseña</label>
+                <input type="password" id="confirmPassword" placeholder="Repite la contraseña" required>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: DATOS DE LA EMPRESA -->
+        <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <h4 style="margin-bottom: 1rem;">🏢 Datos de la empresa</h4>
+
+            <div class="form-group">
+                <label class="required">Tipo de empresa</label>
+                <select id="tipoEmpresa" required>
+                    <option value="">Seleccione...</option>
+                    <option value="tecnologia">Tecnología y Software</option>
+                    <option value="financiero">Servicios Financieros</option>
+                    <option value="salud">Salud</option>
+                    <option value="educacion">Educación</option>
+                    <option value="consultoria">Consultoría</option>
+                    <option value="manufactura">Manufactura</option>
+                    <option value="gobierno">Gobierno / Entidad Pública</option>
+                    <option value="otros">Otros</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="required">Sector económico</label>
+                <select id="sectorEconomico" required>
+                    <option value="">Seleccione...</option>
+                    <option value="primario">Primario (Agricultura, Minería, Pesca)</option>
+                    <option value="secundario">Secundario (Industria, Manufactura, Construcción)</option>
+                    <option value="terciario">Terciario (Servicios, Comercio, Turismo)</option>
+                    <option value="cuaternario">Cuaternario (Tecnología, I+D, Consultoría)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="required">Sub-sector económico</label>
+                <select id="subSector" required>
+                    <option value="">Primero selecciona un sector económico</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="required">Nombre de la empresa</label>
+                <input type="text" id="nombreEmpresa" placeholder="Nombre legal de la empresa" required>
+            </div>
+
+            <div class="form-group">
+                <label class="required">NIT</label>
+                <input type="text" id="nit" placeholder="Ej: 900.123.456-7" required>
+            </div>
+
+            <div class="form-group">
+                <label class="required">Nombre del administrador</label>
+                <input type="text" id="nombreAdmin" placeholder="Nombre completo del administrador" required>
+            </div>
+        </div>
+
+        <button type="button" id="registrarBtn" class="btn" style="background: #485755; width: 100%;">
+            <span>Crear empresa y cuenta</span>
+            <span id="loadingSpinner" class="loading">⏳</span>
+        </button>
+    </form>
+
+    <div style="margin-top: 1rem; text-align: center;">
+        <a href="login.html" style="color: #485755;">¿Ya tienes cuenta? Inicia sesión</a>
+    </div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+    // Elementos del DOM
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const registrarBtn = document.getElementById('registrarBtn');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const errorMessageDiv = document.getElementById('errorMessage');
+    const successMessageDiv = document.getElementById('successMessage');
+
+    // Elementos de validación de contraseña
+    const reqLength = document.getElementById('req-length');
+    const reqUpper = document.getElementById('req-upper');
+    const reqLower = document.getElementById('req-lower');
+    const reqNumber = document.getElementById('req-number');
+    const reqSpecial = document.getElementById('req-special');
+
+    // Función para validar contraseña en tiempo real
+    function validatePassword(password) {
+        const requirements = {
+            length: password.length >= 8,
+            upper: /[A-Z]/.test(password),
+            lower: /[a-z]/.test(password),
+            number: /[0-9]/.test(password),
+            special: /[!@#$%^&*()_\-+={}[\]|\\:;"'<>,.?/]/.test(password)
+        };
+
+        // Actualizar UI
+        if (requirements.length) reqLength.classList.add('valid'); else reqLength.classList.remove('valid');
+        if (requirements.upper) reqUpper.classList.add('valid'); else reqUpper.classList.remove('valid');
+        if (requirements.lower) reqLower.classList.add('valid'); else reqLower.classList.remove('valid');
+        if (requirements.number) reqNumber.classList.add('valid'); else reqNumber.classList.remove('valid');
+        if (requirements.special) reqSpecial.classList.add('valid'); else reqSpecial.classList.remove('valid');
+
+        return Object.values(requirements).every(v => v === true);
+    }
+
+    // Escuchar cambios en la contraseña
+    passwordInput.addEventListener('input', (e) => {
+        validatePassword(e.target.value);
+    });
+
+    // Función para mostrar error
+    function showError(message) {
+        errorMessageDiv.textContent = message;
+        errorMessageDiv.style.display = 'block';
+        successMessageDiv.style.display = 'none';
+        setTimeout(() => {
+            errorMessageDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    // Función para mostrar éxito
+    function showSuccess(message) {
+        successMessageDiv.textContent = message;
+        successMessageDiv.style.display = 'block';
+        errorMessageDiv.style.display = 'none';
+    }
+
+    // Función para guardar empresa en tu API (RDS)
+    async function guardarEmpresaEnAPI(datosEmpresa, cognitoUserId) {
+        // Esta función llama a tu Lambda de proveedores para crear la empresa
+        // Ajusta la URL según tu API Gateway
+        const apiUrl = 'https://cf759ojbfj.execute-api.us-east-1.amazonaws.com/V1/empresas';
+        
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify({
+                ...datosEmpresa,
+                cognito_user_id: cognitoUserId,
+                fecha_registro: new Date().toISOString()
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al guardar datos de la empresa');
+        }
+
+        return await response.json();
+    }
+
+    // Función principal de registro
+    async function handleRegistro() {
+        // Obtener valores
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const tipoEmpresa = document.getElementById('tipoEmpresa').value;
+        const sectorEconomico = document.getElementById('sectorEconomico').value;
+        const subSectorTexto = document.getElementById('subSector').selectedOptions[0]?.textContent || '';
+        const subSectorValue = document.getElementById('subSector').value;  
+        const nombreEmpresa = document.getElementById('nombreEmpresa').value.trim();
+        const nit = document.getElementById('nit').value.trim();
+        const nombreAdmin = document.getElementById('nombreAdmin').value.trim();
+
+        // Validaciones
+        if (!email || !password || !nombreEmpresa || !nit || !nombreAdmin || !tipoEmpresa || !sectorEconomico) {
+            showError('Todos los campos obligatorios deben estar llenos');
+            return;
+        }
+
+        // Validar email
+        if (!email.includes('@')) {
+            showError('Ingresa un correo electrónico válido');
+            return;
+        }
+
+        // Validar contraseña
+        if (!validatePassword(password)) {
+            showError('La contraseña no cumple con los requisitos de seguridad');
+            return;
+        }
+
+        // Validar que las contraseñas coincidan
+        if (password !== confirmPassword) {
+            showError('Las contraseñas no coinciden');
+            return;
+        }
+
+        // Mostrar loading
+        registrarBtn.disabled = true;
+        registrarBtn.classList.add('btn-loading');
+        loadingSpinner.style.display = 'inline-block';
+
+        try {
+            // PASO 1: Registrar usuario en Cognito
+            const signUpResponse = await fetch(`https://cognito-idp.${COGNITO_CONFIG.region}.amazonaws.com/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-amz-json-1.1',
+                    'X-Amz-Target': 'AWSCognitoIdentityProviderService.SignUp'
+                },
+                body: JSON.stringify({
+                    ClientId: COGNITO_CONFIG.clientId,
+                    Username: email,
+                    Password: password,
+                    UserAttributes: [
+                        {
+                            Name: 'email',
+                            Value: email
+                        },
+                        {
+                            Name: 'name',
+                            Value: nombreAdmin
+                        },
+                        {
+                            Name: 'custom:empresa_nombre',
+                            Value: nombreEmpresa
+                        },
+                        {
+                            Name: 'custom:empresa_nit',
+                            Value: nit
+                        },
+                        {
+                            Name: 'custom:empresa_tipo',
+                            Value: tipoEmpresa
+                        }
+                    ]
+                })
+            });
+
+            if (!signUpResponse.ok) {
+                const error = await signUpResponse.json();
+                console.error('Error Cognito:', error);
+                
+                if (error.message === 'User already exists') {
+                    throw new Error('El email ya está registrado. Por favor inicia sesión.');
+                } else if (error.message.includes('password')) {
+                    throw new Error('La contraseña no cumple con los requisitos de seguridad');
+                } else {
+                    throw new Error(error.message || 'Error al registrar usuario');
+                }
+            }
+
+            const signUpData = await signUpResponse.json();
+            const cognitoUserId = signUpData.UserSub;
+
+            // PASO 2: Guardar datos de la empresa en RDS (vía tu API)
+            const datosEmpresa = {
+                nombre_empresa: nombreEmpresa,
+                nit: nit,
+                tipo_empresa: tipoEmpresa,
+                sector_economico: sectorEconomico,
+                sub_sector: subSectorTexto,  // ← Usamos el texto, no el value
+                administrador_nombre: nombreAdmin,
+                administrador_email: email,
+                fecha_registro: new Date().toISOString(),
+                estado: 'activa'
+            };
+
+            // Intentar guardar en API (si está disponible)
+            try {
+                await guardarEmpresaEnAPI(datosEmpresa, cognitoUserId);
+            } catch (apiError) {
+                console.warn('Error al guardar en API, pero usuario ya está registrado:', apiError);
+                // No fallamos el registro completo, solo mostramos advertencia
+            }
+
+            // Después de registro exitoso
+            showSuccess('✅ ¡Registro exitoso! Se ha enviado un código de confirmación a tu email.');
+
+            // Redirigir a la página de confirmación (no al login)
+            setTimeout(() => {
+                window.location.href = 'confirmar.html?email=' + encodeURIComponent(email);
+            }, 3000);
+
+        } catch (error) {
+            showError(error.message || 'Error al registrar. Intenta nuevamente.');
+            console.error('Error en registro:', error);
+        } finally {
+            // Ocultar loading
+            registrarBtn.disabled = false;
+            registrarBtn.classList.remove('btn-loading');
+            loadingSpinner.style.display = 'none';
+        }
+    }
+
+    // Conectar el botón
+    registrarBtn.addEventListener('click', handleRegistro);
+
+    // Permitir registro con Enter
+    const inputs = ['email', 'password', 'confirmPassword', 'nombreEmpresa', 'nit', 'nombreAdmin'];
+    inputs.forEach(id => {
+        document.getElementById(id)?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleRegistro();
+            }
+        });
+    });
+    // Datos de subsectores por sector económico
+    const subsectoresPorSector = {
+        primario: [
+            "Agricultura",
+            "Ganadería",
+            "Pesca y Acuicultura",
+            "Minería",
+            "Silvicultura",
+            "Explotación forestal"
+        ],
+        secundario: [
+            "Manufactura textil",
+            "Manufactura química",
+            "Manufactura de alimentos",
+            "Metalurgia",
+            "Construcción",
+            "Energía eléctrica",
+            "Agua y saneamiento"
+        ],
+        terciario: [
+            "Servicios financieros (banca, seguros)",
+            "Salud y hospitales",
+            "Educación",
+            "Consultoría empresarial",
+            "Comercio minorista",
+            "Comercio mayorista",
+            "Turismo y hotelería",
+            "Transporte y logística",
+            "Telecomunicaciones",
+            "Servicios profesionales"
+        ],
+        cuaternario: [
+            "Desarrollo de software",
+            "I+D (Investigación y Desarrollo)",
+            "Biotecnología",
+            "Tecnologías de la información",
+            "Servicios cloud",
+            "Ciberseguridad",
+            "Inteligencia Artificial",
+            "Consultoría TI",
+            "Centros de datos",
+            "Startups tecnológicas"
+        ]
+    };
+
+    // Función para cargar subsectores según el sector seleccionado
+    function cargarSubsectores() {
+        const sector = document.getElementById('sectorEconomico').value;
+        const subSectorSelect = document.getElementById('subSector');
+        
+        // Limpiar opciones actuales
+        subSectorSelect.innerHTML = '<option value="">Seleccione un subsector</option>';
+        
+        if (sector && subsectoresPorSector[sector]) {
+            // Cargar subsectores del sector seleccionado
+            subsectoresPorSector[sector].forEach(subsector => {
+                const option = document.createElement('option');
+                option.value = subsector.toLowerCase().replace(/\s+/g, '_');
+                option.textContent = subsector;
+                subSectorSelect.appendChild(option);
+            });
+        }
+    }
+
+    // Escuchar cambios en el sector económico
+    document.getElementById('sectorEconomico').addEventListener('change', cargarSubsectores);
+</script>
+
+</body>
+
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-logo">
+            <img src="img/logo.png" alt="ISO Logo">
+        </div>
+        <div class="footer-info">
+            <h5>Control PrecISO</h5>
+            <p>Despliegue de la Norma ISO 27001:2022</p>
+            <p class="copyright">© 2026 - Todos los derechos reservados.</p>
+            <hr>
+            <div class="footer-contact">
+                <h5>Contacto</h5>
+                <p>jdprietop@academia.usbbog.edu.co</p>
+                <p>jfordonezc@academia.usbbog.edu.co</p>
+            </div>
+        </div>
+    </div>
+</footer>
+</html>

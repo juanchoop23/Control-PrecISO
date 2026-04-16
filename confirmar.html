@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Confirmar Cuenta - Control PrecISO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .form {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .error-message {
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+        .success-message {
+            color: #10b981;
+            background: #d1fae5;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+        .loading {
+            display: none;
+            margin-left: 10px;
+        }
+        .btn-loading {
+            opacity: 0.7;
+            cursor: wait;
+        }
+        .code-input {
+            text-align: center;
+            font-size: 32px;
+            letter-spacing: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form">
+    <h2>Confirmar tu cuenta</h2>
+    <p style="color: #64748b; margin-bottom: 1.5rem;">
+        Se ha enviado un código de verificación a tu correo electrónico.<br>
+        Ingresa el código para activar tu cuenta.
+    </p>
+
+    <div id="errorMessage" class="error-message"></div>
+    <div id="successMessage" class="success-message"></div>
+
+    <div class="form-group">
+        <label class="required">Email</label>
+        <input type="email" id="email" placeholder="tu@email.com" class="form-control" required>
+    </div>
+
+    <div class="form-group">
+        <label class="required">Código de verificación</label>
+        <input type="text" id="codigo" placeholder="Ej: 123456" class="form-control code-input" maxlength="6" required>
+        <div class="help-text">Revisa tu bandeja de entrada y spam</div>
+    </div>
+
+    <button id="confirmarBtn" class="btn" style="background: #485755; width: 100%;">
+        <span>Confirmar cuenta</span>
+        <span id="loadingSpinner" class="loading">⏳</span>
+    </button>
+
+    <div style="margin-top: 1rem; text-align: center;">
+        <a href="login.html" style="color: #485755;">¿Ya confirmaste? Inicia sesión</a>
+    </div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+    const emailInput = document.getElementById('email');
+    const codigoInput = document.getElementById('codigo');
+    const confirmarBtn = document.getElementById('confirmarBtn');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const errorMessageDiv = document.getElementById('errorMessage');
+    const successMessageDiv = document.getElementById('successMessage');
+
+    function showError(message) {
+        errorMessageDiv.textContent = message;
+        errorMessageDiv.style.display = 'block';
+        successMessageDiv.style.display = 'none';
+        setTimeout(() => {
+            errorMessageDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    function showSuccess(message) {
+        successMessageDiv.textContent = message;
+        successMessageDiv.style.display = 'block';
+        errorMessageDiv.style.display = 'none';
+    }
+
+    async function handleConfirmar() {
+        const email = emailInput.value.trim();
+        const codigo = codigoInput.value.trim();
+
+        if (!email || !codigo) {
+            showError('Por favor ingresa tu email y el código de verificación');
+            return;
+        }
+
+        if (codigo.length !== 6) {
+            showError('El código debe tener 6 dígitos');
+            return;
+        }
+
+        confirmarBtn.disabled = true;
+        confirmarBtn.classList.add('btn-loading');
+        loadingSpinner.style.display = 'inline-block';
+
+        try {
+            // Confirmar usuario en Cognito
+            const response = await fetch(`https://cognito-idp.${COGNITO_CONFIG.region}.amazonaws.com/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-amz-json-1.1',
+                    'X-Amz-Target': 'AWSCognitoIdentityProviderService.ConfirmSignUp'
+                },
+                body: JSON.stringify({
+                    ClientId: COGNITO_CONFIG.clientId,
+                    Username: email,
+                    ConfirmationCode: codigo
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                console.error('Error:', error);
+                
+                if (error.message === 'User already confirmed') {
+                    throw new Error('La cuenta ya estaba confirmada. Puedes iniciar sesión.');
+                } else if (error.message === 'Invalid code') {
+                    throw new Error('Código inválido. Verifica el código que te llegó por email.');
+                } else {
+                    throw new Error(error.message || 'Error al confirmar');
+                }
+            }
+
+            showSuccess('✅ ¡Cuenta confirmada exitosamente! Redirigiendo al login...');
+            
+            // Limpiar campos
+            emailInput.value = '';
+            codigoInput.value = '';
+
+            // Redirigir al login después de 3 segundos
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 3000);
+
+        } catch (error) {
+            showError(error.message || 'Error al confirmar. Intenta nuevamente.');
+        } finally {
+            confirmarBtn.disabled = false;
+            confirmarBtn.classList.remove('btn-loading');
+            loadingSpinner.style.display = 'none';
+        }
+    }
+
+    confirmarBtn.addEventListener('click', handleConfirmar);
+
+    // Permitir confirmar con Enter
+    codigoInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            handleConfirmar();
+        }
+    });
+</script>
+
+</body>
+
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-logo">
+            <img src="img/logo.png" alt="ISO Logo">
+        </div>
+        <div class="footer-info">
+            <h5>Control PrecISO</h5>
+            <p>Despliegue de la Norma ISO 27001:2022</p>
+            <p class="copyright">© 2026 - Todos los derechos reservados.</p>
+            <hr>
+            <div class="footer-contact">
+                <h5>Contacto</h5>
+                <p>jdprietop@academia.usbbog.edu.co</p>
+                <p>jfordonezc@academia.usbbog.edu.co</p>
+            </div>
+        </div>
+    </div>
+</footer>
+</html>

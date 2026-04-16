@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <script>
+    // Verificar autenticación
+    if (!isAuthenticated()) {
+        window.location.href = 'login.html';
+    }
+    
+    // Después de isAuthenticated()
+    // Esperar a que todo esté cargado
+    document.addEventListener('DOMContentLoaded', async function() {
+        await cargarEmpresaId();
+    });
+
+    async function cargarEmpresaId() {
+        try {
+            const empresaId = await getEmpresaId();
+            if (empresaId) {
+                localStorage.setItem('empresa_id', empresaId);
+                console.log('Empresa ID cargado:', empresaId);
+            } else {
+                console.log('No se pudo obtener empresa_id, usando valor por defecto');
+                localStorage.setItem('empresa_id', 8);
+            }
+        } catch (error) {
+            console.error('Error en cargarEmpresaId:', error);
+            localStorage.setItem('empresa_id', 8);
+        }
+    }
+
+    
+    // Función para obtener el rol del usuario desde el token
+    function getUserRole() {
+        const token = localStorage.getItem('id_token');
+        if (!token) return null;
+        
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            // Cognito pone los grupos en 'cognito:groups'
+            const groups = payload['cognito:groups'] || [];
+            if (groups.includes('Superadmin')) return 'Superadmin';
+            if (groups.includes('AdminEmpresa')) return 'AdminEmpresa';
+            if (groups.includes('UsuarioEmpresa')) return 'UsuarioEmpresa';
+            return null;
+        } catch (error) {
+            console.error('Error al decodificar token:', error);
+            return null;
+        }
+    }
+    </script>
+    
+    <nav class="navbar bg-dark border-bottom border-body" data-bs-theme="dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="img/logo.png" alt="Logo" width="45" height="26" class="d-inline-block align-text-top">
+                <strong>Control PrecISO</strong>
+            </a>
+            <div class="d-flex">
+                <span class="navbar-text me-3" style="color: white;">
+                    Rol: <span id="userRoleSpan">Cargando...</span>
+                </span>
+                <a href="index.html" class="btn btn-sm btn-outline-light" onclick="logout()">Cerrar sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <div class="sidebar" id="sidebar">
+            <!-- Los enlaces se generan dinámicamente según el rol -->
+        </div>
+
+        <main class="dashboard-main">
+            <iframe 
+                src="home.html"
+                name="contenido"
+                class="responsive-iframe"
+                frameborder="0">
+            </iframe>
+        </main>
+    </div>
+
+    <script>
+    // Obtener rol del usuario
+    const userRole = getUserRole();
+    
+    // Mostrar rol en la navbar
+    const roleSpan = document.getElementById('userRoleSpan');
+    if (roleSpan) {
+        const roleNames = {
+            'Superadmin': '🔧 Superadministrador',
+            'AdminEmpresa': '🏢 Administrador de Empresa',
+            'UsuarioEmpresa': '👤 Usuario'
+        };
+        roleSpan.textContent = roleNames[userRole] || 'Sin rol asignado';
+    }
+    
+    // Definir menús según rol
+    const menusPorRol = {
+        Superadmin: [
+            { nombre: 'Home', url: 'home.html', id: 'menu-home' },
+            { nombre: 'Capacitación', url: 'capacitacion.html', id: 'menu-capacitacion' },
+            { nombre: 'Implementación', url: 'implementacion.html', id: 'menu-implementacion' },
+            { nombre: 'Auditoría', url: 'auditoria.html', id: 'menu-auditoria' },
+            { nombre: 'Todo en Uno', url: 'todo-en-uno.html', id: 'menu-todo-en-uno' },
+            { nombre: 'Gestión de Controles', url: 'gestion-controles.html', id: 'menu-gestion-controles' },
+            { nombre: 'Gestión de Proveedores', url: 'gestion-proveedores.html', id: 'menu-gestion-proveedores' },
+            { nombre: 'Reportes', url: 'reportes.html', id: 'menu-reportes' },
+            { nombre: 'Administrar Empresas', url: 'admin-empresas.html', id: 'menu-admin-empresas' }
+        ],
+        AdminEmpresa: [
+            { nombre: 'Home', url: 'home.html', id: 'menu-home' },
+            { nombre: 'Capacitación', url: 'capacitacion.html', id: 'menu-capacitacion' },
+            { nombre: 'Implementación', url: 'implementacion.html', id: 'menu-implementacion' },
+            { nombre: 'Auditoría', url: 'auditoria.html', id: 'menu-auditoria' },
+            { nombre: 'Todo en Uno', url: 'todo-en-uno.html', id: 'menu-todo-en-uno' },
+            { nombre: 'Gestión de Controles', url: 'gestion-controles.html', id: 'menu-gestion-controles' },
+            { nombre: 'Gestión de Proveedores', url: 'gestion-proveedores.html', id: 'menu-gestion-proveedores' },
+            { nombre: 'Reportes', url: 'reportes.html', id: 'menu-reportes' }
+        ],
+        UsuarioEmpresa: [
+            { nombre: 'Home', url: 'home.html', id: 'menu-home' },
+            { nombre: 'Capacitación', url: 'capacitacion.html', id: 'menu-capacitacion' },
+            { nombre: 'Implementación', url: 'implementacion.html', id: 'menu-implementacion' },
+            { nombre: 'Reportes', url: 'reportes.html', id: 'menu-reportes' }
+        ]
+    };
+    
+    // Obtener menús según rol (si no hay rol, mostrar solo Home)
+    const menus = menusPorRol[userRole] || menusPorRol.UsuarioEmpresa;
+    
+    // Generar sidebar
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+        sidebar.innerHTML = menus.map(menu => `
+            <a href="${menu.url}" target="contenido" id="${menu.id}">${menu.nombre}</a>
+        `).join('');
+    }
+    
+    // Redirigir si no hay rol y no es Superadmin/AdminEmpresa (por si acaso)
+    if (!userRole && window.location.pathname !== '/index.html' && window.location.pathname !== '/login.html') {
+        // No hacer nada, los menús ya están limitados
+    }
+    </script>
+
+</body>
+
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-logo">
+            <img src="img/logo.png" alt="ISO Logo">
+        </div>
+        <div class="footer-info">
+            <h6>Control PrecISO</h6>
+            <p>Despliegue de la Norma ISO 27001:2022</p>
+            <p class="copyright">© 2026 - Todos los derechos reservados.</p>
+            <hr>
+            <div class="footer-contact">
+                <h6>Contacto</h6>
+                <p>jdprietop@academia.usbbog.edu.co</p>
+                <p>jfordonezc@academia.usbbog.edu.co</p>
+            </div>
+        </div>
+    </div>
+</footer>
+</html>

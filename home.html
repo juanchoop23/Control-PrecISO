@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roles ISO 27001</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 00px;
+            /*box-shadow: 0 10px 30px rgba(0,0,0,0.1);*/
+        }
+
+        h1 {
+            color: #1e293b;
+            margin-bottom: 40px;
+            font-size: 32px;
+            font-weight: 600;
+            border-left: 5px solid #485755;
+            padding-left: 20px;
+        }
+
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .role-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .role-card {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 35px 20px;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .role-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.15);
+            border-color: #485755;
+        }
+
+        /* Efecto de fondo en hover */
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: #485755;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .role-link:hover .role-card::before {
+            transform: scaleX(1);
+        }
+
+        /* Iconos para cada rol */
+        .role-icon {
+            width: 100px;
+            height: 100px;
+            background: #e2e8f0;
+            border-radius: 50%;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #485755;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .role-link:hover .role-icon {
+            background: #485755;
+            color: white;
+            transform: scale(1.1);
+            border-color: #1a2560;
+        }
+
+        .role-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .role-description {
+            color: #64748b;
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            padding: 0 10px;
+            flex-grow: 1;
+        }
+
+        /* Indicador de clic */
+        .click-indicator {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .role-link:hover .click-indicator {
+            opacity: 1;
+            color: #485755;
+        }
+
+        /* Badge para TODO EN UNO */
+        .role-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #485755, #1a2560);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(72, 87, 85, 0.3);
+        }
+
+        /* Estilo especial para la tarjeta TODO EN UNO */
+        .role-card.special {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border: 2px solid #485755;
+        }
+
+        .role-card.special .role-icon {
+            background: #485755;
+            color: white;
+        }
+
+        .role-card.special .role-title {
+            color: #485755;
+            font-size: 26px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .roles-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .roles-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bienvenido a Control PrecISO</h1>
+        
+        <div class="roles-grid">
+            <!-- CAPACITADOR - Enlace a página de capacitador -->
+            <a href="capacitacion.html" class="role-link">
+                <div class="role-card">
+                    <div class="role-icon">
+                        📚
+                    </div>
+                    <div class="role-title">CAPACITADOR</div>
+                    <div class="role-description">
+                        Formación y concienciación en seguridad de la información
+                    </div>
+                </div>
+            </a>
+
+            <!-- IMPLEMENTADOR - Enlace a página de implementador -->
+            <a href="implementacion.html" class="role-link">
+                <div class="role-card">
+                    <div class="role-icon">
+                        ⚙️
+                    </div>
+                    <div class="role-title">IMPLEMENTADOR</div>
+                    <div class="role-description">
+                        Implementación y configuración de controles ISO 27001
+                    </div>
+                </div>
+            </a>
+
+            <!-- AUDITOR - Enlace a página de auditor -->
+            <a href="auditoria.html" class="role-link">
+                <div class="role-card">
+                    <div class="role-icon">
+                        ✓
+                    </div>
+                    <div class="role-title">AUDITOR</div>
+                    <div class="role-description">
+                        Auditoría interna y externa de sistemas de gestión
+                    </div>
+                </div>
+            </a>
+
+            <!-- TODO EN UNO - Enlace a página de todo en uno -->
+            <a href="todo-en-uno.html" class="role-link">
+                <div class="role-card special">
+                    <div class="role-icon">
+                        👑
+                    </div>
+                    <div class="role-title">TODO EN UNO</div>
+                    <div class="role-description">
+                        Capacitador, Implementador y Auditor certificado
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Leyenda/Descripción inferior -->
+        <div style="
+            margin-top: 40px;
+            padding: 20px;
+            background: #f1f5f9;
+            border-radius: 12px;
+            text-align: center;
+            color: #475569;
+            border-left: 4px solid #485755;
+        ">
+            <p style="font-size: 16px;">
+                <strong>🌟 Despliegue de la norma ISO 27001:2022</strong> · Haga clic en el rol que desee desempeñar.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

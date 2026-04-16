@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <title>Proveedores y Terceros - ISO 27001</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 0px;
+        }
+
+        h1 {
+            color: #1e293b;
+            margin-bottom: 30px;
+            font-size: 32px;
+            font-weight: 600;
+            border-left: 5px solid #485755;
+            padding-left: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #485755;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .proveedores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .proveedor-card {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .proveedor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: #485755;
+        }
+
+        .proveedor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #485755;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .proveedor-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .proveedor-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .proveedor-icon {
+            width: 50px;
+            height: 50px;
+            background: #e2e8f0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #485755;
+            transition: all 0.3s ease;
+        }
+
+        .proveedor-card:hover .proveedor-icon {
+            background: #485755;
+            color: white;
+        }
+
+        .proveedor-nombre {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .proveedor-info {
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px dashed #cbd5e1;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: #475569;
+        }
+
+        .info-value {
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .riesgo-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .riesgo-bajo { background: #d1fae5; color: #065f46; }
+        .riesgo-medio { background: #fef3c7; color: #92400e; }
+        .riesgo-alto { background: #fee2e2; color: #991b1b; }
+        .riesgo-critico { background: #dc2626; color: white; }
+
+        .estado-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .estado-activo {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .estado-inactivo {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .auditar-btn {
+            width: 100%;
+            background: #485755;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            margin-top: 15px;
+        }
+
+        .auditar-btn:hover {
+            background: #1a2560;
+            transform: translateY(-2px);
+        }
+
+        .acciones-panel {
+            background: #f1f5f9;
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .acciones-titulo {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .acciones-titulo::before {
+            content: '⚡';
+            font-size: 24px;
+        }
+
+        .acciones-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .accion-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            color: inherit;
+        }
+
+        .accion-item:hover {
+            transform: translateY(-3px);
+            border-color: #485755;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .accion-icon {
+            width: 60px;
+            height: 60px;
+            background: #f8fafc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 30px;
+            color: #485755;
+            transition: all 0.3s ease;
+        }
+
+        .accion-item:hover .accion-icon {
+            background: #485755;
+            color: white;
+        }
+
+        .accion-nombre {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+
+        .accion-desc {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .resumen {
+            margin-top: 30px;
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .acciones-grid {
+                grid-template-columns: 1fr;
+            }
+            .proveedores-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Proveedores y Terceros</h1>
+        
+        <div id="loading" class="loading">Cargando proveedores...</div>
+        <div id="error" class="error-message" style="display: none;"></div>
+        
+        <div id="proveedoresContainer" style="display: none;"></div>
+
+        <!-- Panel de acciones -->
+        <div class="acciones-panel">
+            <div class="acciones-titulo">GESTIÓN DE PROVEEDORES</div>
+            <div class="acciones-grid">
+                <a href="anadir-proveedor.html" class="accion-item">
+                    <div class="accion-icon">➕</div>
+                    <div class="accion-nombre">AÑADIR</div>
+                    <div class="accion-desc">Registrar un nuevo proveedor o tercero</div>
+                </a>
+                <a href="modificar-proveedor.html" class="accion-item">
+                    <div class="accion-icon">✏️</div>
+                    <div class="accion-nombre">MODIFICAR O ELIMINAR</div>
+                    <div class="accion-desc">Actualiza o Elimina la información del proveedor</div>
+                </a>
+            </div>
+        </div>
+
+        <div id="resumen" class="resumen" style="display: none;">
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div><strong>Total proveedores:</strong> <span id="totalProveedores">0</span></div>
+                <div><strong>Activos:</strong> <span id="activosCount">0</span></div>
+                <div><strong>Inactivos:</strong> <span id="inactivosCount">0</span></div>
+            </div>
+            <div style="color: #64748b; font-size: 13px;" id="fechaActualizacion"></div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN
+        const API_PROVEEDORES = 'https://kv594jq187.execute-api.us-east-1.amazonaws.com/v1/proveedores';
+        const EMPRESA_ID = localStorage.getItem('empresa_id') || 8;
+
+        // Elementos DOM
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        const proveedoresContainer = document.getElementById('proveedoresContainer');
+        const resumenDiv = document.getElementById('resumen');
+        const totalProveedoresSpan = document.getElementById('totalProveedores');
+        const activosCountSpan = document.getElementById('activosCount');
+        const inactivosCountSpan = document.getElementById('inactivosCount');
+        const fechaActualizacionSpan = document.getElementById('fechaActualizacion');
+        // Verificar rol para gestión de proveedores
+        const userRole = getUserRole();
+        if (userRole !== 'AdminEmpresa' && userRole !== 'Superadmin') {
+            document.body.innerHTML = `
+                <div style="text-align:center; padding:50px;">
+                    <h2>⚠️ Acceso Denegado</h2>
+                    <p>No tienes permisos para gestionar proveedores.</p>
+                    <a href="dashboard.html" class="btn btn-primary">Volver al Dashboard</a>
+                </div>
+            `;
+            throw new Error('Acceso denegado');
+        }
+
+        // Función para obtener badge de riesgo
+        function getRiesgoBadge(riesgo) {
+            if (!riesgo) return '<span class="riesgo-badge riesgo-bajo">Sin evaluar</span>';
+            switch(riesgo) {
+                case 'bajo': return '<span class="riesgo-badge riesgo-bajo">🟢 Riesgo Bajo</span>';
+                case 'medio': return '<span class="riesgo-badge riesgo-medio">🟡 Riesgo Medio</span>';
+                case 'alto': return '<span class="riesgo-badge riesgo-alto">🔴 Riesgo Alto</span>';
+                case 'critico': return '<span class="riesgo-badge riesgo-critico">⚫ Riesgo Crítico</span>';
+                default: return '<span class="riesgo-badge riesgo-bajo">Sin evaluar</span>';
+            }
+        }
+
+        // Función para obtener badge de estado
+        function getEstadoBadge(estado) {
+            if (estado === 'activo') {
+                return '<span class="estado-badge estado-activo">✅ Activo</span>';
+            } else {
+                return '<span class="estado-badge estado-inactivo">❌ Inactivo</span>';
+            }
+        }
+
+        // Función para obtener icono según tipo de proveedor
+        function getIcono(tipo) {
+            const iconos = {
+                'cloud': '☁️',
+                'soporte': '🔧',
+                'consultoria': '📊',
+                'hardware': '🖥️',
+                'software': '💾',
+                'otros': '📦'
+            };
+            return iconos[tipo] || '🏢';
+        }
+
+        // Renderizar proveedores
+        function renderizarProveedores(proveedores) {
+            proveedoresContainer.innerHTML = '';
+            
+            if (proveedores.length === 0) {
+                proveedoresContainer.innerHTML = '<div style="text-align: center; padding: 50px; color: #64748b;">No hay proveedores registrados</div>';
+                return;
+            }
+            
+            const grid = document.createElement('div');
+            grid.className = 'proveedores-grid';
+            
+            proveedores.forEach(prov => {
+                const card = document.createElement('div');
+                card.className = 'proveedor-card';
+                card.innerHTML = `
+                    <div class="proveedor-header">
+                        <div class="proveedor-icon">${getIcono(prov.tipo_proveedor)}</div>
+                        <div class="proveedor-nombre">${prov.nombre_empresa}</div>
+                    </div>
+                    <div class="proveedor-info">
+                        <div class="info-item">
+                            <span class="info-label">NIT:</span>
+                            <span class="info-value">${prov.nit}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Tipo:</span>
+                            <span class="info-value">${prov.tipo_proveedor}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Contacto:</span>
+                            <span class="info-value">${prov.contacto_nombre || 'N/A'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value">${prov.contacto_email || 'N/A'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Servicio:</span>
+                            <span class="info-value">${prov.servicio_contratado || 'N/A'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Riesgo:</span>
+                            <span class="info-value">${getRiesgoBadge(prov.riesgo_general)}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Estado:</span>
+                            <span class="info-value">${getEstadoBadge(prov.estado)}</span>
+                        </div>
+                    </div>
+                    <a href="auditoria-proveedor.html?proveedor_id=${prov.id}&nombre=${encodeURIComponent(prov.nombre_empresa)}" class="auditar-btn">
+                        <span>🔍</span> AUDITAR
+                    </a>
+                `;
+                grid.appendChild(card);
+            });
+            
+            proveedoresContainer.appendChild(grid);
+        }
+
+        // Cargar proveedores
+        async function cargarProveedores() {
+            try {
+                loadingDiv.style.display = 'block';
+                errorDiv.style.display = 'none';
+                proveedoresContainer.style.display = 'none';
+                resumenDiv.style.display = 'none';
+
+                const response = await fetch(`${API_PROVEEDORES}?empresa_id=${EMPRESA_ID}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const proveedores = data.proveedores || [];
+                
+                // Actualizar resumen
+                const total = proveedores.length;
+                const activos = proveedores.filter(p => p.estado === 'activo').length;
+                const inactivos = total - activos;
+                
+                totalProveedoresSpan.textContent = total;
+                activosCountSpan.textContent = activos;
+                inactivosCountSpan.textContent = inactivos;
+                fechaActualizacionSpan.textContent = `Última actualización: ${new Date().toLocaleDateString()}`;
+                
+                renderizarProveedores(proveedores);
+                
+                loadingDiv.style.display = 'none';
+                proveedoresContainer.style.display = 'block';
+                resumenDiv.style.display = 'flex';
+
+            } catch (err) {
+                console.error('Error:', err);
+                errorDiv.textContent = `Error al cargar proveedores: ${err.message}`;
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        // Cargar al inicio
+        cargarProveedores();
+    </script>
+</body>
+</html>

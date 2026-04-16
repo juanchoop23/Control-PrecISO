@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <title>Modificar/Eliminar Proveedor - ISO 27001</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 0px;
+        }
+
+        h1 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 32px;
+            font-weight: 600;
+            border-left: 5px solid #485755;
+            padding-left: 20px;
+        }
+
+        .subtitulo {
+            color: #64748b;
+            margin-bottom: 30px;
+            padding-left: 25px;
+            font-size: 15px;
+        }
+
+        .form-section {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title span {
+            background: #485755;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        label.required::after {
+            content: ' *';
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #485755;
+            box-shadow: 0 0 0 3px rgba(72, 87, 85, 0.2);
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #485755;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #485755;
+            color: white;
+            box-shadow: 0 4px 10px rgba(72, 87, 85, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #1a2560;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #485755;
+            border: 2px solid #485755;
+        }
+
+        .btn-secondary:hover {
+            background: #f1f5f9;
+            transform: translateY(-2px);
+        }
+
+        .select-proveedor {
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+            .buttons-container {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Modificar o Eliminar Proveedor</h1>
+        <div class="subtitulo">
+            Seleccione un proveedor para modificar o eliminar
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+
+        <div class="select-proveedor">
+            <div class="form-section">
+                <div class="section-title">
+                    <span>🔍</span> SELECCIONAR PROVEEDOR
+                </div>
+                <div class="form-group">
+                    <label class="required">Seleccione el proveedor</label>
+                    <select id="proveedorSelect" required>
+                        <option value="">Cargando proveedores...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <form id="proveedorForm" style="display: none;">
+            <!-- SECCIÓN 1: Información básica -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span>📋</span> INFORMACIÓN BÁSICA
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="required">Nombre del proveedor</label>
+                        <input type="text" id="nombreEmpresa" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="required">NIT</label>
+                        <input type="text" id="nit" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="required">Tipo de proveedor</label>
+                        <select id="tipoProveedor" required>
+                            <option value="cloud">Cloud Computing</option>
+                            <option value="soporte">Soporte Técnico</option>
+                            <option value="consultoria">Consultoría</option>
+                            <option value="hardware">Hardware</option>
+                            <option value="software">Software</option>
+                            <option value="otros">Otros</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Servicio contratado</label>
+                        <input type="text" id="servicioContratado">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: Datos de contacto -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span>📞</span> DATOS DE CONTACTO
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="required">Persona de contacto</label>
+                        <input type="text" id="contactoNombre" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Cargo</label>
+                        <input type="text" id="contactoCargo">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="required">Email</label>
+                        <input type="email" id="contactoEmail" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="required">Teléfono</label>
+                        <input type="tel" id="contactoTelefono" required>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Dirección</label>
+                        <input type="text" id="direccion">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: Estado -->
+            <div class="form-section">
+                <div class="section-title">
+                    <span>⚡</span> ESTADO
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="required">Estado</label>
+                        <select id="estado" required>
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Observaciones</label>
+                        <textarea id="observaciones" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="buttons-container">
+                <a href="gestion-proveedores.html" class="btn btn-secondary">
+                    <span>✖</span> CANCELAR
+                </a>
+                <button type="button" id="modificarBtn" class="btn btn-primary">
+                    <span>✓</span> MODIFICAR
+                    <span id="loadingModificar" class="loading"></span>
+                </button>
+                <button type="button" id="eliminarBtn" class="btn btn-danger">
+                    <span>🗑️</span> ELIMINAR
+                    <span id="loadingEliminar" class="loading"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN
+        const API_PROVEEDORES = 'https://kv594jq187.execute-api.us-east-1.amazonaws.com/v1/proveedores';
+        const EMPRESA_ID = localStorage.getItem('empresa_id') || 8;  // CAMBIA SEGÚN LA EMPRESA
+
+        let proveedores = [];
+        let proveedorSeleccionado = null;
+
+        // Verificar rol
+        const userRole = getUserRole();
+        if (userRole !== 'AdminEmpresa' && userRole !== 'Superadmin') {
+            document.body.innerHTML = `
+                <div style="text-align:center; padding:50px;">
+                    <h2>⚠️ Acceso Denegado</h2>
+                    <p>No tienes permisos para modificar proveedores.</p>
+                    <a href="gestion-proveedores.html" class="btn btn-primary">Volver</a>
+                </div>
+            `;
+            throw new Error('Acceso denegado');
+        }
+
+        // Elementos DOM
+        const proveedorSelect = document.getElementById('proveedorSelect');
+        const proveedorForm = document.getElementById('proveedorForm');
+        const modificarBtn = document.getElementById('modificarBtn');
+        const eliminarBtn = document.getElementById('eliminarBtn');
+        const loadingModificar = document.getElementById('loadingModificar');
+        const loadingEliminar = document.getElementById('loadingEliminar');
+        const errorMessageDiv = document.getElementById('errorMessage');
+        const successMessageDiv = document.getElementById('successMessage');
+
+        function showError(message) {
+            errorMessageDiv.textContent = message;
+            errorMessageDiv.style.display = 'block';
+            successMessageDiv.style.display = 'none';
+            setTimeout(() => {
+                errorMessageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            successMessageDiv.textContent = message;
+            successMessageDiv.style.display = 'block';
+            errorMessageDiv.style.display = 'none';
+            setTimeout(() => {
+                successMessageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function cargarProveedoresEnSelect() {
+            proveedorSelect.innerHTML = '<option value="">Seleccione un proveedor...</option>';
+            proveedores.forEach(prov => {
+                const option = document.createElement('option');
+                option.value = prov.id;
+                option.textContent = `${prov.nombre_empresa} (${prov.nit}) - ${prov.estado === 'activo' ? 'Activo' : 'Inactivo'}`;
+                proveedorSelect.appendChild(option);
+            });
+        }
+
+        function cargarDatosProveedor(proveedorId) {
+            const proveedor = proveedores.find(p => p.id == proveedorId);
+            if (!proveedor) return;
+
+            proveedorSeleccionado = proveedor;
+
+            document.getElementById('nombreEmpresa').value = proveedor.nombre_empresa || '';
+            document.getElementById('nit').value = proveedor.nit || '';
+            document.getElementById('tipoProveedor').value = proveedor.tipo_proveedor || '';
+            document.getElementById('servicioContratado').value = proveedor.servicio_contratado || '';
+            document.getElementById('contactoNombre').value = proveedor.contacto_nombre || '';
+            document.getElementById('contactoCargo').value = proveedor.contacto_cargo || '';
+            document.getElementById('contactoEmail').value = proveedor.contacto_email || '';
+            document.getElementById('contactoTelefono').value = proveedor.contacto_telefono || '';
+            document.getElementById('direccion').value = proveedor.direccion || '';
+            document.getElementById('estado').value = proveedor.estado || 'activo';
+            document.getElementById('observaciones').value = proveedor.observaciones || '';
+
+            proveedorForm.style.display = 'block';
+        }
+
+        async function cargarProveedores() {
+            try {
+                const response = await fetch(`${API_PROVEEDORES}?empresa_id=${EMPRESA_ID}`);
+                if (!response.ok) throw new Error('Error al cargar proveedores');
+                const data = await response.json();
+                proveedores = data.proveedores || [];
+                cargarProveedoresEnSelect();
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error al cargar proveedores');
+            }
+        }
+
+        proveedorSelect.addEventListener('change', () => {
+            const proveedorId = proveedorSelect.value;
+            if (proveedorId) {
+                cargarDatosProveedor(proveedorId);
+            } else {
+                proveedorForm.style.display = 'none';
+            }
+        });
+
+        async function modificarProveedor() {
+            if (!proveedorSeleccionado) return;
+
+            modificarBtn.disabled = true;
+            loadingModificar.style.display = 'inline-block';
+
+            const data = {
+                empresa_id: EMPRESA_ID,
+                nombre_empresa: document.getElementById('nombreEmpresa').value,
+                nit: document.getElementById('nit').value,
+                tipo_proveedor: document.getElementById('tipoProveedor').value,
+                servicio_contratado: document.getElementById('servicioContratado').value || null,
+                contacto_nombre: document.getElementById('contactoNombre').value,
+                contacto_email: document.getElementById('contactoEmail').value,
+                contacto_telefono: document.getElementById('contactoTelefono').value,
+                estado: document.getElementById('estado').value
+            };
+
+            try {
+                const response = await fetch(`${API_PROVEEDORES}/${proveedorSeleccionado.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) throw new Error('Error al modificar');
+
+                showSuccess('✅ Proveedor modificado exitosamente');
+                setTimeout(() => {
+                    window.location.href = 'gestion-proveedores.html';
+                }, 1500);
+            } catch (error) {
+                showError(error.message || 'Error al modificar proveedor');
+            } finally {
+                modificarBtn.disabled = false;
+                loadingModificar.style.display = 'none';
+            }
+        }
+
+        async function eliminarProveedor() {
+            if (!proveedorSeleccionado) return;
+            
+            if (!confirm(`¿Está seguro de eliminar el proveedor "${proveedorSeleccionado.nombre_empresa}"?`)) return;
+
+            eliminarBtn.disabled = true;
+            loadingEliminar.style.display = 'inline-block';
+
+            try {
+                const response = await fetch(`${API_PROVEEDORES}/${proveedorSeleccionado.id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ empresa_id: EMPRESA_ID })
+                });
+
+                if (!response.ok) throw new Error('Error al eliminar');
+
+                showSuccess('✅ Proveedor eliminado exitosamente');
+                setTimeout(() => {
+                    window.location.href = 'gestion-proveedores.html';
+                }, 1500);
+            } catch (error) {
+                showError(error.message || 'Error al eliminar proveedor');
+            } finally {
+                eliminarBtn.disabled = false;
+                loadingEliminar.style.display = 'none';
+            }
+        }
+
+        modificarBtn.addEventListener('click', modificarProveedor);
+        eliminarBtn.addEventListener('click', eliminarProveedor);
+
+        cargarProveedores();
+    </script>
+</body>
+</html>
