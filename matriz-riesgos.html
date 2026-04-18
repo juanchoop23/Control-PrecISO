@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Matriz de Riesgos - Control PrecISO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        .riesgo-item {
+            background: white;
+            border-left: 4px solid;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+        }
+        .riesgo-item.Bajo { border-left-color: #28a745; }
+        .riesgo-item.Medio { border-left-color: #ffc107; }
+        .riesgo-item.Alto { border-left-color: #fd7e14; }
+        .riesgo-item.Critico { border-left-color: #dc3545; }
+        
+        .nivel-riesgo {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .nivel-Bajo { background: #d1e7dd; color: #0f5132; }
+        .nivel-Medio { background: #fff3cd; color: #856404; }
+        .nivel-Alto { background: #f8d7da; color: #721c24; }
+        .nivel-Critico { background: #dc3545; color: white; }
+        
+        .resumen-card {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 12px;
+            background: #f8f9fa;
+        }
+        .resumen-numero {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .loading { text-align: center; padding: 2rem; }
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        /* Matriz de calor 5x5 */
+        .matriz-riesgo {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .matriz-table {
+            width: 100%;
+            text-align: center;
+            border-collapse: collapse;
+        }
+        .matriz-table th, .matriz-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+        .matriz-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .celda-1 { background: #d1e7dd; }
+        .celda-2 { background: #a3cfbb; }
+        .celda-3 { background: #fff3cd; }
+        .celda-4 { background: #ffe0b2; }
+        .celda-5 { background: #f8d7da; }
+        .celda-6 { background: #f5c6cb; }
+        .celda-9 { background: #f1b0b7; }
+        .celda-12 { background: #e4606d; }
+        .celda-16 { background: #dc3545; }
+        .celda-20 { background: #b02a37; }
+        .celda-25 { background: #8b1e28; }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h2>🔥 Matriz de Riesgos</h2>
+        <p class="text-muted mb-4">
+            Visualización de los riesgos evaluados por nivel de probabilidad e impacto.
+        </p>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div id="loadingSpinner" class="loading">Cargando matriz de riesgos...</div>
+
+        <!-- Resumen de riesgos -->
+        <div class="row" id="resumenContainer"></div>
+
+        <!-- Tabla de matriz 5x5 -->
+        <div class="card">
+            <div class="card-header">📊 Matriz de Calor (Probabilidad vs Impacto)</div>
+            <div class="card-body">
+                <div class="matriz-riesgo" id="matrizContainer"></div>
+            </div>
+        </div>
+
+        <!-- Lista de riesgos evaluados -->
+        <div class="card">
+            <div class="card-header">📋 Riesgos Evaluados</div>
+            <div class="card-body" id="riesgosContainer"></div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        const API_URL = 'https://7fj91g35sl.execute-api.us-east-1.amazonaws.com/v1';
+        let empresaId = null;
+
+        async function obtenerEmpresaId() {
+            try {
+                const id = await getEmpresaId();
+                empresaId = id || parseInt(localStorage.getItem('empresa_id') || '8');
+                return empresaId;
+            } catch (error) {
+                empresaId = 8;
+                return 8;
+            }
+        }
+
+        async function cargarMatriz() {
+            if (!empresaId) await obtenerEmpresaId();
+            
+            const loading = document.getElementById('loadingSpinner');
+            const errorDiv = document.getElementById('errorMessage');
+            
+            loading.style.display = 'block';
+            errorDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_URL}/riesgos/matriz?empresa_id=${empresaId}`);
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Error al cargar datos');
+                }
+                
+                const riesgos = result.data;
+                const resumen = result.resumen;
+                
+                // Mostrar resumen
+                const resumenContainer = document.getElementById('resumenContainer');
+                resumenContainer.innerHTML = `
+                    <div class="col-md-3">
+                        <div class="resumen-card">
+                            <div class="resumen-numero" style="color: #0f5132;">${resumen.Bajo || 0}</div>
+                            <div>Riesgos Bajos</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="resumen-card">
+                            <div class="resumen-numero" style="color: #856404;">${resumen.Medio || 0}</div>
+                            <div>Riesgos Medios</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="resumen-card">
+                            <div class="resumen-numero" style="color: #721c24;">${resumen.Alto || 0}</div>
+                            <div>Riesgos Altos</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="resumen-card">
+                            <div class="resumen-numero" style="color: #8b1e28;">${resumen.Critico || 0}</div>
+                            <div>Riesgos Críticos</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Mostrar matriz de calor
+                const matrizContainer = document.getElementById('matrizContainer');
+                matrizContainer.innerHTML = generarMatrizCalor(riesgos);
+                
+                // Mostrar lista de riesgos
+                const riesgosContainer = document.getElementById('riesgosContainer');
+                if (riesgos.length === 0) {
+                    riesgosContainer.innerHTML = '<div class="alert alert-info">No hay riesgos evaluados aún. Ve a "Gestión de Riesgos" para crear evaluaciones.</div>';
+                } else {
+                    riesgosContainer.innerHTML = riesgos.map(r => `
+                        <div class="riesgo-item ${r.nivel_riesgo_inherente}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>${escapeHtml(r.activo_nombre)}</strong>
+                                    <span class="badge bg-secondary">${r.activo_codigo}</span>
+                                    <br>
+                                    <small class="text-muted">
+                                        Amenaza: ${escapeHtml(r.amenaza_nombre)} (${r.amenaza_codigo})<br>
+                                        Vulnerabilidad: ${escapeHtml(r.vulnerabilidad_nombre)} (${r.vulnerabilidad_codigo})
+                                    </small>
+                                </div>
+                                <div>
+                                    <span class="nivel-riesgo nivel-${r.nivel_riesgo_inherente}">${r.nivel_riesgo_inherente}</span>
+                                    <br>
+                                    <small>${r.probabilidad} × ${r.impacto}</small>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <small>Fecha: ${new Date(r.fecha_evaluacion).toLocaleDateString()} | Estado: ${r.estado}</small>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                errorDiv.textContent = 'Error al cargar matriz de riesgos: ' + error.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        function generarMatrizCalor(riesgos) {
+            // Mapear combinaciones probabilidad-impacto
+            const valoresProb = {'Muy Baja': 1, 'Baja': 2, 'Media': 3, 'Alta': 4, 'Muy Alta': 5};
+            const valoresImp = {'Muy Bajo': 1, 'Bajo': 2, 'Medio': 3, 'Alto': 4, 'Muy Alto': 5};
+            
+            // Contar riesgos por combinación
+            const matriz = {};
+            riesgos.forEach(r => {
+                const p = valoresProb[r.probabilidad];
+                const i = valoresImp[r.impacto];
+                const key = `${p},${i}`;
+                matriz[key] = (matriz[key] || 0) + 1;
+            });
+            
+            const nivelesProb = ['Muy Baja', 'Baja', 'Media', 'Alta', 'Muy Alta'];
+            const nivelesImp = ['Muy Alto', 'Alto', 'Medio', 'Bajo', 'Muy Bajo'];
+            
+            let html = '<table class="matriz-table">';
+            html += '<tr><th></th><th>Muy Baja</th><th>Baja</th><th>Media</th><th>Alta</th><th>Muy Alta</th></tr>';
+            
+            nivelesImp.forEach(impacto => {
+                html += '<tr>';
+                html += `<th>${impacto}</th>`;
+                const impVal = valoresImp[impacto];
+                
+                nivelesProb.forEach(probabilidad => {
+                    const probVal = valoresProb[probabilidad];
+                    const riesgoValor = probVal * impVal;
+                    let claseCelda = '';
+                    if (riesgoValor <= 5) claseCelda = 'celda-1';
+                    else if (riesgoValor <= 12) claseCelda = 'celda-3';
+                    else if (riesgoValor <= 19) claseCelda = 'celda-5';
+                    else claseCelda = 'celda-9';
+                    
+                    const count = matriz[`${probVal},${impVal}`] || 0;
+                    html += `<td class="${claseCelda}">${count > 0 ? count : '-'}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += '</table>';
+            html += '<p class="text-muted mt-3 small">Los números en la tabla indican la cantidad de riesgos evaluados en cada combinación.</p>';
+            return html;
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        document.addEventListener('DOMContentLoaded', cargarMatriz);
+    </script>
+</body>
+</html>

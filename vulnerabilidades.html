@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vulnerabilidades - Control PrecISO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .vulnerabilidad-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .vulnerabilidad-card:hover {
+            transform: translateY(-2px);
+        }
+        .codigo-badge {
+            background: #485755;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        .categoria {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 8px;
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem;
+            display: none;
+        }
+        .total-badge {
+            background: #e9ecef;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>⚠️ Vulnerabilidades</h2>
+            <span class="total-badge" id="totalCount">Cargando...</span>
+        </div>
+        
+        <p class="text-muted mb-4">
+            Lista estándar de vulnerabilidades según ISO 27001:2022. 
+            Estas vulnerabilidades se utilizan para evaluar los riesgos de seguridad.
+        </p>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div id="loadingSpinner" class="loading">Cargando vulnerabilidades...</div>
+        <div id="vulnerabilidadesContainer"></div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        const API_URL = 'https://7fj91g35sl.execute-api.us-east-1.amazonaws.com/v1';
+        
+        async function cargarVulnerabilidades() {
+            const container = document.getElementById('vulnerabilidadesContainer');
+            const loading = document.getElementById('loadingSpinner');
+            const errorDiv = document.getElementById('errorMessage');
+            const totalSpan = document.getElementById('totalCount');
+            
+            loading.style.display = 'block';
+            errorDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_URL}/riesgos/vulnerabilidades`);
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Error al cargar datos');
+                }
+                
+                const vulnerabilidades = result.data;
+                totalSpan.textContent = `Total: ${result.total} vulnerabilidades`;
+                
+                if (vulnerabilidades.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">No hay vulnerabilidades registradas.</div>';
+                    return;
+                }
+                
+                // Agrupar por categoría
+                const agrupadas = {};
+                vulnerabilidades.forEach(v => {
+                    if (!agrupadas[v.categoria]) agrupadas[v.categoria] = [];
+                    agrupadas[v.categoria].push(v);
+                });
+                
+                // Generar HTML
+                let html = '';
+                for (const [categoria, items] of Object.entries(agrupadas)) {
+                    html += `
+                        <h4 class="mt-3 mb-3">📁 ${categoria}</h4>
+                        <div class="row">
+                    `;
+                    
+                    items.forEach(v => {
+                        html += `
+                            <div class="col-md-6 col-lg-4">
+                                <div class="vulnerabilidad-card">
+                                    <span class="codigo-badge">${v.codigo}</span>
+                                    <h5 class="mt-2">${escapeHtml(v.nombre)}</h5>
+                                    <p class="text-muted small">${escapeHtml(v.descripcion || 'Sin descripción')}</p>
+                                    <div class="categoria">
+                                        <strong>Categoría:</strong> ${v.categoria}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `</div>`;
+                }
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                errorDiv.textContent = 'Error al cargar vulnerabilidades: ' + error.message;
+                errorDiv.style.display = 'block';
+                container.innerHTML = '';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Cargar al iniciar
+        document.addEventListener('DOMContentLoaded', cargarVulnerabilidades);
+    </script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestión de Riesgos - Control PrecISO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        .card-header {
+            background: #f8f9fa;
+            border-bottom: 2px solid #485755;
+            font-weight: bold;
+        }
+        .activo-item {
+            background: white;
+            border-left: 4px solid #485755;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+        }
+        .btn-primary {
+            background: #485755;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #2d3a38;
+        }
+        .nivel-riesgo {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .nivel-Bajo { background: #d1e7dd; color: #0f5132; }
+        .nivel-Medio { background: #fff3cd; color: #856404; }
+        .nivel-Alto { background: #f8d7da; color: #721c24; }
+        .nivel-Critico { background: #dc3545; color: white; }
+        .loading { text-align: center; padding: 2rem; }
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+        .success-message {
+            background: #d1e7dd;
+            color: #0f5132;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h2>📊 Gestión de Riesgos</h2>
+        <p class="text-muted mb-4">
+            Gestione los activos de información y evalúe los riesgos asociados.
+        </p>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+
+        <!-- Formulario para crear activo -->
+        <div class="card">
+            <div class="card-header">➕ Crear Nuevo Activo</div>
+            <div class="card-body">
+                <form id="activoForm">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <input type="text" id="codigo" class="form-control" placeholder="Código (ej: ACT-001)" required>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <input type="text" id="nombre" class="form-control" placeholder="Nombre del activo" required>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <select id="tipo" class="form-select" required>
+                                <option value="">Tipo</option>
+                                <option value="Software">Software</option>
+                                <option value="Hardware">Hardware</option>
+                                <option value="Datos">Datos</option>
+                                <option value="Personal">Personal</option>
+                                <option value="Servicios">Servicios</option>
+                                <option value="Infraestructura">Infraestructura</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <input type="text" id="dueno" class="form-control" placeholder="Dueño">
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <input type="text" id="ubicacion" class="form-control" placeholder="Ubicación">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Crear Activo</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista de activos existentes -->
+        <div class="card">
+            <div class="card-header">📦 Mis Activos</div>
+            <div class="card-body">
+                <div id="activosLoading" class="loading">Cargando activos...</div>
+                <div id="activosContainer"></div>
+            </div>
+        </div>
+
+        <!-- Formulario para evaluar riesgo -->
+        <div class="card">
+            <div class="card-header">⚠️ Evaluar Riesgo</div>
+            <div class="card-body">
+                <form id="evaluarForm">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <select id="activo_id" class="form-select" required>
+                                <option value="">Seleccionar Activo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <select id="amenaza_id" class="form-select" required>
+                                <option value="">Seleccionar Amenaza</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <select id="vulnerabilidad_id" class="form-select" required>
+                                <option value="">Seleccionar Vulnerabilidad</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <select id="probabilidad" class="form-select" required>
+                                <option value="">Probabilidad</option>
+                                <option value="Muy Baja">Muy Baja</option>
+                                <option value="Baja">Baja</option>
+                                <option value="Media">Media</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Muy Alta">Muy Alta</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <select id="impacto" class="form-select" required>
+                                <option value="">Impacto</option>
+                                <option value="Muy Bajo">Muy Bajo</option>
+                                <option value="Bajo">Bajo</option>
+                                <option value="Medio">Medio</option>
+                                <option value="Alto">Alto</option>
+                                <option value="Muy Alto">Muy Alto</option>
+                            </select>
+                        </div>
+                    </div>
+                    <textarea id="observaciones" class="form-control mb-2" rows="2" placeholder="Observaciones (opcional)"></textarea>
+                    <button type="submit" class="btn btn-primary">Evaluar Riesgo</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        const API_URL = 'https://7fj91g35sl.execute-api.us-east-1.amazonaws.com/v1';
+        let empresaId = null;
+
+        // Obtener empresa_id
+        async function obtenerEmpresaId() {
+            try {
+                const id = await getEmpresaId();
+                empresaId = id || parseInt(localStorage.getItem('empresa_id') || '8');
+                console.log('Empresa ID:', empresaId);
+                return empresaId;
+            } catch (error) {
+                console.error('Error:', error);
+                empresaId = 8;
+                return 8;
+            }
+        }
+
+        // Mostrar mensaje
+        function showMessage(elementId, message, isError = false) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.textContent = message;
+                el.style.display = 'block';
+                if (isError) {
+                    setTimeout(() => { el.style.display = 'none'; }, 5000);
+                } else {
+                    setTimeout(() => { el.style.display = 'none'; }, 3000);
+                }
+            }
+        }
+
+        // Cargar amenazas
+        async function cargarAmenazas() {
+            try {
+                const response = await fetch(`${API_URL}/riesgos/amenazas`);
+                const result = await response.json();
+                if (result.success) {
+                    const select = document.getElementById('amenaza_id');
+                    result.data.forEach(a => {
+                        const option = document.createElement('option');
+                        option.value = a.id;
+                        option.textContent = `${a.codigo} - ${a.nombre}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando amenazas:', error);
+            }
+        }
+
+        // Cargar vulnerabilidades
+        async function cargarVulnerabilidades() {
+            try {
+                const response = await fetch(`${API_URL}/riesgos/vulnerabilidades`);
+                const result = await response.json();
+                if (result.success) {
+                    const select = document.getElementById('vulnerabilidad_id');
+                    result.data.forEach(v => {
+                        const option = document.createElement('option');
+                        option.value = v.id;
+                        option.textContent = `${v.codigo} - ${v.nombre}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando vulnerabilidades:', error);
+            }
+        }
+
+        // Cargar activos
+        async function cargarActivos() {
+            if (!empresaId) await obtenerEmpresaId();
+            
+            const container = document.getElementById('activosContainer');
+            const loading = document.getElementById('activosLoading');
+            const selectActivo = document.getElementById('activo_id');
+            
+            loading.style.display = 'block';
+            
+            try {
+                const response = await fetch(`${API_URL}/riesgos/activos?empresa_id=${empresaId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const activos = result.data;
+                    
+                    if (activos.length === 0) {
+                        container.innerHTML = '<div class="alert alert-info">No hay activos registrados. Crea uno arriba.</div>';
+                    } else {
+                        container.innerHTML = activos.map(a => `
+                            <div class="activo-item">
+                                <strong>${escapeHtml(a.codigo)}</strong> - ${escapeHtml(a.nombre)}
+                                <span class="badge bg-secondary">${a.tipo}</span>
+                                ${a.dueno ? `<br><small>Dueño: ${escapeHtml(a.dueno)}</small>` : ''}
+                            </div>
+                        `).join('');
+                    }
+                    
+                    // Llenar select del formulario de evaluación
+                    selectActivo.innerHTML = '<option value="">Seleccionar Activo</option>';
+                    activos.forEach(a => {
+                        const option = document.createElement('option');
+                        option.value = a.id;
+                        option.textContent = `${a.codigo} - ${a.nombre}`;
+                        selectActivo.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = '<div class="alert alert-danger">Error al cargar activos</div>';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // Crear activo
+        document.getElementById('activoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!empresaId) await obtenerEmpresaId();
+            
+            const data = {
+                empresa_id: empresaId,
+                codigo: document.getElementById('codigo').value,
+                nombre: document.getElementById('nombre').value,
+                tipo: document.getElementById('tipo').value,
+                dueno: document.getElementById('dueno').value,
+                ubicacion: document.getElementById('ubicacion').value
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/riesgos/activos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('successMessage', '✅ Activo creado correctamente', false);
+                    document.getElementById('activoForm').reset();
+                    cargarActivos();
+                } else {
+                    showMessage('errorMessage', '❌ Error: ' + result.error, true);
+                }
+            } catch (error) {
+                showMessage('errorMessage', '❌ Error al crear activo', true);
+            }
+        });
+
+        // Evaluar riesgo
+        document.getElementById('evaluarForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!empresaId) await obtenerEmpresaId();
+            
+            const data = {
+                empresa_id: empresaId,
+                activo_id: parseInt(document.getElementById('activo_id').value),
+                amenaza_id: parseInt(document.getElementById('amenaza_id').value),
+                vulnerabilidad_id: parseInt(document.getElementById('vulnerabilidad_id').value),
+                probabilidad: document.getElementById('probabilidad').value,
+                impacto: document.getElementById('impacto').value,
+                observaciones: document.getElementById('observaciones').value,
+                evaluado_por: localStorage.getItem('user_email') || 'admin'
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/riesgos/evaluar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('successMessage', `✅ Riesgo evaluado: ${result.data.nivel_riesgo}`, false);
+                    document.getElementById('evaluarForm').reset();
+                } else {
+                    showMessage('errorMessage', '❌ Error: ' + result.error, true);
+                }
+            } catch (error) {
+                showMessage('errorMessage', '❌ Error al evaluar riesgo', true);
+            }
+        });
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', async () => {
+            await obtenerEmpresaId();
+            await Promise.all([cargarAmenazas(), cargarVulnerabilidades(), cargarActivos()]);
+        });
+    </script>
+</body>
+</html>
