@@ -1,0 +1,25 @@
+Juandiego24*
+hijo3101@gmail.com
+
+conectarme desde cloudshell de aws
+mysql -h empresas-db-1.cqz0u6ouwwj7.us-east-1.rds.amazonaws.com -u admin -p empresas_db_1
+
+
+
+Para subirlo a GitHub y git lab
+
+pasos
+
+1. cd "C:\Users\juand\OneDrive - Universidad de San Buenaventura - Bogota\Documents\Decimo_Tercer_Semestre\Sistemas Distribuidos\Corte_2\Página Web"
+
+2. git init
+
+3. git add .
+
+4. git commit -m "Nombre del commit"
+
+5. git push origin main && git push gitlab main
+
+
+
+enlace de pagina en gitlab: https://control-preciso-897540.gitlab.io/
